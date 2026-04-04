@@ -255,26 +255,54 @@ function GenresSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.1 }}
-              className="w-full md:w-64 relative group cursor-pointer"
+              className="w-full md:w-64 relative group"
             >
-              <div
-                className="absolute inset-0 transform translate-x-2 translate-y-2 rounded-xl opacity-20 transition-transform group-hover:translate-x-3 group-hover:translate-y-3"
-                style={{ backgroundColor: g.color }}
-              ></div>
-              <div
-                className="relative p-6 rounded-xl text-white overflow-hidden transform transition-transform group-hover:-translate-y-1 h-full shadow-lg"
-                style={{ backgroundColor: g.color }}
-              >
-                <div className="absolute inset-2 border border-white/20 rounded-lg pointer-events-none border-dashed"></div>
-                <div className="text-4xl mb-4">{g.emoji}</div>
-                <h3 className="font-display font-bold text-2xl mb-2">{g.name}</h3>
-                <p className="text-sm opacity-90 mb-3">{g.description}</p>
-                {g.booksRead > 0 && (
-                  <span className="inline-block text-xs font-semibold bg-white/20 rounded-full px-3 py-1">
-                    📚 {g.booksRead} {g.booksRead === 1 ? "libro leído" : "libros leídos"}
-                  </span>
-                )}
-              </div>
+              {g.id ? (
+                <Link href={`/paises/${g.id}`} className="block cursor-pointer">
+                  <div
+                    className="absolute inset-0 transform translate-x-2 translate-y-2 rounded-xl opacity-20 transition-transform group-hover:translate-x-3 group-hover:translate-y-3"
+                    style={{ backgroundColor: g.color }}
+                  ></div>
+                  <div
+                    className="relative p-6 rounded-xl text-white overflow-hidden transform transition-transform group-hover:-translate-y-1 h-full shadow-lg"
+                    style={{ backgroundColor: g.color }}
+                  >
+                    <div className="absolute inset-2 border border-white/20 rounded-lg pointer-events-none border-dashed"></div>
+                    <div className="text-4xl mb-4">{g.emoji}</div>
+                    <h3 className="font-display font-bold text-2xl mb-2">{g.name}</h3>
+                    <p className="text-sm opacity-90 mb-3">{g.description}</p>
+                    {g.booksRead > 0 && (
+                      <span className="inline-block text-xs font-semibold bg-white/20 rounded-full px-3 py-1">
+                        📚 {g.booksRead} {g.booksRead === 1 ? "libro leído" : "libros leídos"}
+                      </span>
+                    )}
+                    <div className="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity text-white/70 text-xs font-medium">
+                      Explorar →
+                    </div>
+                  </div>
+                </Link>
+              ) : (
+                <>
+                  <div
+                    className="absolute inset-0 transform translate-x-2 translate-y-2 rounded-xl opacity-20"
+                    style={{ backgroundColor: g.color }}
+                  ></div>
+                  <div
+                    className="relative p-6 rounded-xl text-white overflow-hidden h-full shadow-lg"
+                    style={{ backgroundColor: g.color }}
+                  >
+                    <div className="absolute inset-2 border border-white/20 rounded-lg pointer-events-none border-dashed"></div>
+                    <div className="text-4xl mb-4">{g.emoji}</div>
+                    <h3 className="font-display font-bold text-2xl mb-2">{g.name}</h3>
+                    <p className="text-sm opacity-90 mb-3">{g.description}</p>
+                    {g.booksRead > 0 && (
+                      <span className="inline-block text-xs font-semibold bg-white/20 rounded-full px-3 py-1">
+                        📚 {g.booksRead} {g.booksRead === 1 ? "libro leído" : "libros leídos"}
+                      </span>
+                    )}
+                  </div>
+                </>
+              )}
             </motion.div>
           ))}
         </div>

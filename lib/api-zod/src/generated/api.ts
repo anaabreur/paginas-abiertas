@@ -121,6 +121,213 @@ export const GetLiteraryCountriesResponse = zod.array(
 );
 
 /**
+ * @summary Get a single literary country by id
+ */
+export const GetLiteraryCountryParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const GetLiteraryCountryResponse = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  emoji: zod.string(),
+  description: zod.string(),
+  color: zod.string(),
+  booksRead: zod.number(),
+  displayOrder: zod.number(),
+  updatedAt: zod.string(),
+});
+
+/**
+ * @summary Get completed expeditions for a country
+ */
+export const GetCountryExpeditionsParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const GetCountryExpeditionsResponseItem = zod.object({
+  id: zod.number(),
+  countryId: zod.number(),
+  title: zod.string(),
+  author: zod.string(),
+  coverUrl: zod.string(),
+  startDate: zod.string(),
+  endDate: zod.string(),
+  closingActivity: zod.string(),
+  closingActivityDesc: zod.string(),
+  description: zod.string(),
+  displayOrder: zod.number(),
+  createdAt: zod.string(),
+  readers: zod.array(
+    zod.object({
+      id: zod.number(),
+      alias: zod.string(),
+      avatar: zod.string(),
+    }),
+  ),
+});
+export const GetCountryExpeditionsResponse = zod.array(
+  GetCountryExpeditionsResponseItem,
+);
+
+/**
+ * @summary Get gallery photos for a country
+ */
+export const GetCountryGalleryParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const GetCountryGalleryResponseItem = zod.object({
+  id: zod.number(),
+  countryId: zod.number(),
+  url: zod.string(),
+  caption: zod.string(),
+  displayOrder: zod.number(),
+  createdAt: zod.string(),
+});
+export const GetCountryGalleryResponse = zod.array(
+  GetCountryGalleryResponseItem,
+);
+
+/**
+ * @summary Add a completed expedition to a country
+ */
+export const AddExpeditionParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const AddExpeditionBody = zod.object({
+  title: zod.string(),
+  author: zod.string(),
+  coverUrl: zod.string().optional(),
+  startDate: zod.string().optional(),
+  endDate: zod.string().optional(),
+  closingActivity: zod.string().optional(),
+  closingActivityDesc: zod.string().optional(),
+  description: zod.string().optional(),
+});
+
+export const AddExpeditionResponse = zod.object({
+  id: zod.number(),
+  countryId: zod.number(),
+  title: zod.string(),
+  author: zod.string(),
+  coverUrl: zod.string(),
+  startDate: zod.string(),
+  endDate: zod.string(),
+  closingActivity: zod.string(),
+  closingActivityDesc: zod.string(),
+  description: zod.string(),
+  displayOrder: zod.number(),
+  createdAt: zod.string(),
+  readers: zod.array(
+    zod.object({
+      id: zod.number(),
+      alias: zod.string(),
+      avatar: zod.string(),
+    }),
+  ),
+});
+
+/**
+ * @summary Add a gallery photo to a country
+ */
+export const AddGalleryPhotoParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const AddGalleryPhotoBody = zod.object({
+  url: zod.string(),
+  caption: zod.string().optional(),
+});
+
+export const AddGalleryPhotoResponse = zod.object({
+  id: zod.number(),
+  countryId: zod.number(),
+  url: zod.string(),
+  caption: zod.string(),
+  displayOrder: zod.number(),
+  createdAt: zod.string(),
+});
+
+/**
+ * @summary Update an expedition
+ */
+export const UpdateExpeditionParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const UpdateExpeditionBody = zod.object({
+  title: zod.string().optional(),
+  author: zod.string().optional(),
+  coverUrl: zod.string().optional(),
+  startDate: zod.string().optional(),
+  endDate: zod.string().optional(),
+  closingActivity: zod.string().optional(),
+  closingActivityDesc: zod.string().optional(),
+  description: zod.string().optional(),
+});
+
+export const UpdateExpeditionResponse = zod.object({
+  id: zod.number(),
+  countryId: zod.number(),
+  title: zod.string(),
+  author: zod.string(),
+  coverUrl: zod.string(),
+  startDate: zod.string(),
+  endDate: zod.string(),
+  closingActivity: zod.string(),
+  closingActivityDesc: zod.string(),
+  description: zod.string(),
+  displayOrder: zod.number(),
+  createdAt: zod.string(),
+  readers: zod.array(
+    zod.object({
+      id: zod.number(),
+      alias: zod.string(),
+      avatar: zod.string(),
+    }),
+  ),
+});
+
+/**
+ * @summary Delete an expedition
+ */
+export const DeleteExpeditionParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const DeleteExpeditionResponse = zod.object({
+  success: zod.boolean(),
+});
+
+/**
+ * @summary Add a member reader to an expedition
+ */
+export const AddExpeditionReaderParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const AddExpeditionReaderBody = zod.object({
+  memberId: zod.number(),
+});
+
+export const AddExpeditionReaderResponse = zod.object({
+  success: zod.boolean(),
+});
+
+/**
+ * @summary Delete a gallery photo
+ */
+export const DeleteGalleryPhotoParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const DeleteGalleryPhotoResponse = zod.object({
+  success: zod.boolean(),
+});
+
+/**
  * @summary Update a literary country
  */
 export const UpdateLiteraryCountryParams = zod.object({

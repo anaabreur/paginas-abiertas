@@ -134,6 +134,203 @@ paths:
                 items:
                   $ref: "#/components/schemas/LiteraryCountry"
 
+  /literary-countries/{id}:
+    get:
+      operationId: getLiteraryCountry
+      tags: [leaderboard]
+      summary: Get a single literary country by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Literary country detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LiteraryCountry"
+
+  /literary-countries/{id}/expeditions:
+    get:
+      operationId: getCountryExpeditions
+      tags: [leaderboard]
+      summary: Get completed expeditions for a country
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of expeditions with readers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Expedition"
+
+  /literary-countries/{id}/gallery:
+    get:
+      operationId: getCountryGallery
+      tags: [leaderboard]
+      summary: Get gallery photos for a country
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of gallery photos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GalleryPhoto"
+
+  /admin/literary-countries/{id}/expeditions:
+    post:
+      operationId: addExpedition
+      tags: [admin]
+      summary: Add a completed expedition to a country
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddExpeditionBody"
+      responses:
+        "200":
+          description: Created expedition
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Expedition"
+
+  /admin/literary-countries/{id}/gallery:
+    post:
+      operationId: addGalleryPhoto
+      tags: [admin]
+      summary: Add a gallery photo to a country
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddGalleryPhotoBody"
+      responses:
+        "200":
+          description: Created photo
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GalleryPhoto"
+
+  /admin/expeditions/{id}:
+    put:
+      operationId: updateExpedition
+      tags: [admin]
+      summary: Update an expedition
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateExpeditionBody"
+      responses:
+        "200":
+          description: Updated expedition
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Expedition"
+    delete:
+      operationId: deleteExpedition
+      tags: [admin]
+      summary: Delete an expedition
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /admin/expeditions/{id}/readers:
+    post:
+      operationId: addExpeditionReader
+      tags: [admin]
+      summary: Add a member reader to an expedition
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddReaderBody"
+      responses:
+        "200":
+          description: Reader added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /admin/gallery/{id}:
+    delete:
+      operationId: deleteGalleryPhoto
+      tags: [admin]
+      summary: Delete a gallery photo
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
   /admin/literary-countries/{id}:
     put:
       operationId: updateLiteraryCountry
@@ -762,3 +959,155 @@ components:
           type: string
         booksRead:
           type: integer
+
+    ExpeditionReader:
+      type: object
+      properties:
+        id:
+          type: integer
+        alias:
+          type: string
+        avatar:
+          type: string
+      required:
+        - id
+        - alias
+        - avatar
+
+    Expedition:
+      type: object
+      properties:
+        id:
+          type: integer
+        countryId:
+          type: integer
+        title:
+          type: string
+        author:
+          type: string
+        coverUrl:
+          type: string
+        startDate:
+          type: string
+        endDate:
+          type: string
+        closingActivity:
+          type: string
+        closingActivityDesc:
+          type: string
+        description:
+          type: string
+        displayOrder:
+          type: integer
+        createdAt:
+          type: string
+        readers:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExpeditionReader"
+      required:
+        - id
+        - countryId
+        - title
+        - author
+        - coverUrl
+        - startDate
+        - endDate
+        - closingActivity
+        - closingActivityDesc
+        - description
+        - displayOrder
+        - createdAt
+        - readers
+
+    AddExpeditionBody:
+      type: object
+      properties:
+        title:
+          type: string
+        author:
+          type: string
+        coverUrl:
+          type: string
+        startDate:
+          type: string
+        endDate:
+          type: string
+        closingActivity:
+          type: string
+        closingActivityDesc:
+          type: string
+        description:
+          type: string
+      required:
+        - title
+        - author
+
+    UpdateExpeditionBody:
+      type: object
+      properties:
+        title:
+          type: string
+        author:
+          type: string
+        coverUrl:
+          type: string
+        startDate:
+          type: string
+        endDate:
+          type: string
+        closingActivity:
+          type: string
+        closingActivityDesc:
+          type: string
+        description:
+          type: string
+
+    GalleryPhoto:
+      type: object
+      properties:
+        id:
+          type: integer
+        countryId:
+          type: integer
+        url:
+          type: string
+        caption:
+          type: string
+        displayOrder:
+          type: integer
+        createdAt:
+          type: string
+      required:
+        - id
+        - countryId
+        - url
+        - caption
+        - displayOrder
+        - createdAt
+
+    AddGalleryPhotoBody:
+      type: object
+      properties:
+        url:
+          type: string
+        caption:
+          type: string
+      required:
+        - url
+
+    AddReaderBody:
+      type: object
+      properties:
+        memberId:
+          type: integer
+      required:
+        - memberId
+
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+      required:
+        - success

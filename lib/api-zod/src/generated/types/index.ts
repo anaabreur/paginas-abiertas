@@ -7,7 +7,10 @@
  */
 
 export * from "./addBookBody";
+export * from "./addExpeditionBody";
+export * from "./addGalleryPhotoBody";
 export * from "./addMemberBody";
+export * from "./addReaderBody";
 export * from "./adminVerifyBody";
 export * from "./adminVerifyResponse";
 export * from "./candidateBook";
@@ -16,13 +19,18 @@ export * from "./createVotingSessionBody";
 export * from "./currentBook";
 export * from "./currentBookResponse";
 export * from "./errorResponse";
+export * from "./expedition";
+export * from "./expeditionReader";
+export * from "./galleryPhoto";
 export * from "./generateCodesBody";
 export * from "./generateCodesBodyType";
 export * from "./healthStatus";
 export * from "./leaderboardMember";
 export * from "./leaderboardMemberRank";
 export * from "./literaryCountry";
+export * from "./successResponse";
 export * from "./updateCurrentBookBody";
+export * from "./updateExpeditionBody";
 export * from "./updateLiteraryCountryBody";
 export * from "./updateMemberBody";
 export * from "./voteResult";

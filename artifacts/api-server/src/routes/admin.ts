@@ -8,6 +8,9 @@ import {
   membersTable,
   currentBooksTable,
   literaryCountriesTable,
+  countryExpeditionsTable,
+  expeditionMembersTable,
+  countryGalleryTable,
 } from "@workspace/db";
 import { generateCode, getRank } from "../lib/nanoid";
 
@@ -405,6 +408,155 @@ router.put("/admin/current-book", async (req, res): Promise<void> => {
     updatedAt: book.updatedAt.toISOString(),
   });
 });
+
+// ── EXPEDITION ROUTES ───────────────────────────────────────────────────────
+
+router.post("/admin/literary-countries/:id/expeditions", async (req, res): Promise<void> => {
+  const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const countryId = parseInt(raw, 10);
+
+  const { title, author, coverUrl, startDate, endDate, closingActivity, closingActivityDesc, description, displayOrder } =
+    req.body as {
+      title: string;
+      author: string;
+      coverUrl?: string;
+      startDate?: string;
+      endDate?: string;
+      closingActivity?: string;
+      closingActivityDesc?: string;
+      description?: string;
+      displayOrder?: number;
+    };
+
+  const [expedition] = await db
+    .insert(countryExpeditionsTable)
+    .values({
+      countryId,
+      title,
+      author,
+      coverUrl: coverUrl ?? "",
+      startDate: startDate ?? "",
+      endDate: endDate ?? "",
+      closingActivity: closingActivity ?? "none",
+      closingActivityDesc: closingActivityDesc ?? "",
+      description: description ?? "",
+      displayOrder: displayOrder ?? 0,
+    })
+    .returning();
+
+  res.json({ ...expedition, createdAt: expedition.createdAt.toISOString(), readers: [] });
+});
+
+router.put("/admin/expeditions/:id", async (req, res): Promise<void> => {
+  const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const id = parseInt(raw, 10);
+
+  const { title, author, coverUrl, startDate, endDate, closingActivity, closingActivityDesc, description } =
+    req.body as Partial<{
+      title: string;
+      author: string;
+      coverUrl: string;
+      startDate: string;
+      endDate: string;
+      closingActivity: string;
+      closingActivityDesc: string;
+      description: string;
+    }>;
+
+  const data: Record<string, unknown> = {};
+  if (title !== undefined) data.title = title;
+  if (author !== undefined) data.author = author;
+  if (coverUrl !== undefined) data.coverUrl = coverUrl;
+  if (startDate !== undefined) data.startDate = startDate;
+  if (endDate !== undefined) data.endDate = endDate;
+  if (closingActivity !== undefined) data.closingActivity = closingActivity;
+  if (closingActivityDesc !== undefined) data.closingActivityDesc = closingActivityDesc;
+  if (description !== undefined) data.description = description;
+
+  const [updated] = await db
+    .update(countryExpeditionsTable)
+    .set(data)
+    .where(eq(countryExpeditionsTable.id, id))
+    .returning();
+
+  if (!updated) {
+    res.status(404).json({ message: "Expedición no encontrada" });
+    return;
+  }
+
+  res.json({ ...updated, createdAt: updated.createdAt.toISOString() });
+});
+
+router.delete("/admin/expeditions/:id", async (req, res): Promise<void> => {
+  const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const id = parseInt(raw, 10);
+
+  await db.delete(countryExpeditionsTable).where(eq(countryExpeditionsTable.id, id));
+  res.json({ success: true });
+});
+
+router.post("/admin/expeditions/:id/readers", async (req, res): Promise<void> => {
+  const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const expeditionId = parseInt(raw, 10);
+  const { memberId } = req.body as { memberId: number };
+
+  const existing = await db
+    .select()
+    .from(expeditionMembersTable)
+    .where(eq(expeditionMembersTable.expeditionId, expeditionId));
+
+  if (existing.some((r) => r.memberId === memberId)) {
+    res.json({ success: true, message: "Ya registrado" });
+    return;
+  }
+
+  const [row] = await db
+    .insert(expeditionMembersTable)
+    .values({ expeditionId, memberId })
+    .returning();
+
+  res.json(row);
+});
+
+router.delete("/admin/expeditions/:id/readers/:memberId", async (req, res): Promise<void> => {
+  const rawExp = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const rawMem = Array.isArray(req.params.memberId) ? req.params.memberId[0] : req.params.memberId;
+  const expeditionId = parseInt(rawExp, 10);
+  const memberId = parseInt(rawMem, 10);
+
+  await db
+    .delete(expeditionMembersTable)
+    .where(
+      eq(expeditionMembersTable.expeditionId, expeditionId)
+    );
+
+  res.json({ success: true });
+});
+
+// ── GALLERY ROUTES ───────────────────────────────────────────────────────────
+
+router.post("/admin/literary-countries/:id/gallery", async (req, res): Promise<void> => {
+  const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const countryId = parseInt(raw, 10);
+  const { url, caption, displayOrder } = req.body as { url: string; caption?: string; displayOrder?: number };
+
+  const [photo] = await db
+    .insert(countryGalleryTable)
+    .values({ countryId, url, caption: caption ?? "", displayOrder: displayOrder ?? 0 })
+    .returning();
+
+  res.json({ ...photo, createdAt: photo.createdAt.toISOString() });
+});
+
+router.delete("/admin/gallery/:id", async (req, res): Promise<void> => {
+  const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const id = parseInt(raw, 10);
+
+  await db.delete(countryGalleryTable).where(eq(countryGalleryTable.id, id));
+  res.json({ success: true });
+});
+
+// ── LITERARY COUNTRY UPDATE ──────────────────────────────────────────────────
 
 router.put("/admin/literary-countries/:id", async (req, res): Promise<void> => {
   const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;

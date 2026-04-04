@@ -4,3 +4,6 @@ export * from "./votingCodes";
 export * from "./members";
 export * from "./currentBooks";
 export * from "./literaryCountries";
+export * from "./countryExpeditions";
+export * from "./expeditionMembers";
+export * from "./countryGallery";

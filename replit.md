@@ -28,7 +28,8 @@ The public landing page for Páginas Abiertas book club. Single-page scroll with
 - **Exploradoras** — leaderboard with identity modal (alias + one of 8 custom SVG character avatars stored by id in localStorage)
 - **En Ruta Ahora** — current book being read by the club
 - **Footer** with quick links and social icons
-- **Admin panel** at `/admin` (password: `paginas2026`) — manage voting sessions, leaderboard, current book
+- **Admin panel** at `/admin` (password: `paginas2026`) — manage voting sessions, leaderboard, current book, literary countries, expeditions, and gallery
+- **Country detail page** at `/paises/:id` — per-genre page with passport aesthetic header, active book block, completed expeditions grid, and polaroid photo gallery
 
 ### `artifacts/api-server` — API Server (at `/api`)
 Express 5 backend with:
@@ -37,7 +38,11 @@ Express 5 backend with:
 - `/api/voting/vote` — cast vote with code
 - `/api/leaderboard` — public ranked leaderboard
 - `/api/current-book` — current book info
-- `/api/admin/*` — admin endpoints (verify password, manage voting/leaderboard/book)
+- `/api/literary-countries` — all 7 literary countries (genres)
+- `/api/literary-countries/:id` — single country detail
+- `/api/literary-countries/:id/expeditions` — completed expeditions with readers
+- `/api/literary-countries/:id/gallery` — activity gallery photos
+- `/api/admin/*` — admin endpoints (verify password, manage voting/leaderboard/book/countries/expeditions/gallery)
 
 ## Brand Colors
 - Coral Primary: `#E8523A`

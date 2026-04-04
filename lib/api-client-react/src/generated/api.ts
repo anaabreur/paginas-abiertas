@@ -18,7 +18,10 @@ import type {
 
 import type {
   AddBookBody,
+  AddExpeditionBody,
+  AddGalleryPhotoBody,
   AddMemberBody,
+  AddReaderBody,
   AdminVerifyBody,
   AdminVerifyResponse,
   CandidateBook,
@@ -27,11 +30,15 @@ import type {
   CurrentBook,
   CurrentBookResponse,
   ErrorResponse,
+  Expedition,
+  GalleryPhoto,
   GenerateCodesBody,
   HealthStatus,
   LeaderboardMember,
   LiteraryCountry,
+  SuccessResponse,
   UpdateCurrentBookBody,
+  UpdateExpeditionBody,
   UpdateLiteraryCountryBody,
   UpdateMemberBody,
   VoteResult,
@@ -585,6 +592,784 @@ export function useGetLiteraryCountries<
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
+
+/**
+ * @summary Get a single literary country by id
+ */
+export const getGetLiteraryCountryUrl = (id: number) => {
+  return `/api/literary-countries/${id}`;
+};
+
+export const getLiteraryCountry = async (
+  id: number,
+  options?: RequestInit,
+): Promise<LiteraryCountry> => {
+  return customFetch<LiteraryCountry>(getGetLiteraryCountryUrl(id), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetLiteraryCountryQueryKey = (id: number) => {
+  return [`/api/literary-countries/${id}`] as const;
+};
+
+export const getGetLiteraryCountryQueryOptions = <
+  TData = Awaited<ReturnType<typeof getLiteraryCountry>>,
+  TError = ErrorType<unknown>,
+>(
+  id: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getLiteraryCountry>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetLiteraryCountryQueryKey(id);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getLiteraryCountry>>
+  > = ({ signal }) => getLiteraryCountry(id, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getLiteraryCountry>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetLiteraryCountryQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getLiteraryCountry>>
+>;
+export type GetLiteraryCountryQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get a single literary country by id
+ */
+
+export function useGetLiteraryCountry<
+  TData = Awaited<ReturnType<typeof getLiteraryCountry>>,
+  TError = ErrorType<unknown>,
+>(
+  id: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getLiteraryCountry>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetLiteraryCountryQueryOptions(id, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Get completed expeditions for a country
+ */
+export const getGetCountryExpeditionsUrl = (id: number) => {
+  return `/api/literary-countries/${id}/expeditions`;
+};
+
+export const getCountryExpeditions = async (
+  id: number,
+  options?: RequestInit,
+): Promise<Expedition[]> => {
+  return customFetch<Expedition[]>(getGetCountryExpeditionsUrl(id), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetCountryExpeditionsQueryKey = (id: number) => {
+  return [`/api/literary-countries/${id}/expeditions`] as const;
+};
+
+export const getGetCountryExpeditionsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getCountryExpeditions>>,
+  TError = ErrorType<unknown>,
+>(
+  id: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getCountryExpeditions>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetCountryExpeditionsQueryKey(id);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getCountryExpeditions>>
+  > = ({ signal }) => getCountryExpeditions(id, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getCountryExpeditions>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetCountryExpeditionsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getCountryExpeditions>>
+>;
+export type GetCountryExpeditionsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get completed expeditions for a country
+ */
+
+export function useGetCountryExpeditions<
+  TData = Awaited<ReturnType<typeof getCountryExpeditions>>,
+  TError = ErrorType<unknown>,
+>(
+  id: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getCountryExpeditions>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetCountryExpeditionsQueryOptions(id, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Get gallery photos for a country
+ */
+export const getGetCountryGalleryUrl = (id: number) => {
+  return `/api/literary-countries/${id}/gallery`;
+};
+
+export const getCountryGallery = async (
+  id: number,
+  options?: RequestInit,
+): Promise<GalleryPhoto[]> => {
+  return customFetch<GalleryPhoto[]>(getGetCountryGalleryUrl(id), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetCountryGalleryQueryKey = (id: number) => {
+  return [`/api/literary-countries/${id}/gallery`] as const;
+};
+
+export const getGetCountryGalleryQueryOptions = <
+  TData = Awaited<ReturnType<typeof getCountryGallery>>,
+  TError = ErrorType<unknown>,
+>(
+  id: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getCountryGallery>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetCountryGalleryQueryKey(id);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getCountryGallery>>
+  > = ({ signal }) => getCountryGallery(id, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getCountryGallery>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetCountryGalleryQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getCountryGallery>>
+>;
+export type GetCountryGalleryQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get gallery photos for a country
+ */
+
+export function useGetCountryGallery<
+  TData = Awaited<ReturnType<typeof getCountryGallery>>,
+  TError = ErrorType<unknown>,
+>(
+  id: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getCountryGallery>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetCountryGalleryQueryOptions(id, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Add a completed expedition to a country
+ */
+export const getAddExpeditionUrl = (id: number) => {
+  return `/api/admin/literary-countries/${id}/expeditions`;
+};
+
+export const addExpedition = async (
+  id: number,
+  addExpeditionBody: AddExpeditionBody,
+  options?: RequestInit,
+): Promise<Expedition> => {
+  return customFetch<Expedition>(getAddExpeditionUrl(id), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(addExpeditionBody),
+  });
+};
+
+export const getAddExpeditionMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof addExpedition>>,
+    TError,
+    { id: number; data: BodyType<AddExpeditionBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof addExpedition>>,
+  TError,
+  { id: number; data: BodyType<AddExpeditionBody> },
+  TContext
+> => {
+  const mutationKey = ["addExpedition"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof addExpedition>>,
+    { id: number; data: BodyType<AddExpeditionBody> }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return addExpedition(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type AddExpeditionMutationResult = NonNullable<
+  Awaited<ReturnType<typeof addExpedition>>
+>;
+export type AddExpeditionMutationBody = BodyType<AddExpeditionBody>;
+export type AddExpeditionMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Add a completed expedition to a country
+ */
+export const useAddExpedition = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof addExpedition>>,
+    TError,
+    { id: number; data: BodyType<AddExpeditionBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof addExpedition>>,
+  TError,
+  { id: number; data: BodyType<AddExpeditionBody> },
+  TContext
+> => {
+  return useMutation(getAddExpeditionMutationOptions(options));
+};
+
+/**
+ * @summary Add a gallery photo to a country
+ */
+export const getAddGalleryPhotoUrl = (id: number) => {
+  return `/api/admin/literary-countries/${id}/gallery`;
+};
+
+export const addGalleryPhoto = async (
+  id: number,
+  addGalleryPhotoBody: AddGalleryPhotoBody,
+  options?: RequestInit,
+): Promise<GalleryPhoto> => {
+  return customFetch<GalleryPhoto>(getAddGalleryPhotoUrl(id), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(addGalleryPhotoBody),
+  });
+};
+
+export const getAddGalleryPhotoMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof addGalleryPhoto>>,
+    TError,
+    { id: number; data: BodyType<AddGalleryPhotoBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof addGalleryPhoto>>,
+  TError,
+  { id: number; data: BodyType<AddGalleryPhotoBody> },
+  TContext
+> => {
+  const mutationKey = ["addGalleryPhoto"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof addGalleryPhoto>>,
+    { id: number; data: BodyType<AddGalleryPhotoBody> }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return addGalleryPhoto(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type AddGalleryPhotoMutationResult = NonNullable<
+  Awaited<ReturnType<typeof addGalleryPhoto>>
+>;
+export type AddGalleryPhotoMutationBody = BodyType<AddGalleryPhotoBody>;
+export type AddGalleryPhotoMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Add a gallery photo to a country
+ */
+export const useAddGalleryPhoto = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof addGalleryPhoto>>,
+    TError,
+    { id: number; data: BodyType<AddGalleryPhotoBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof addGalleryPhoto>>,
+  TError,
+  { id: number; data: BodyType<AddGalleryPhotoBody> },
+  TContext
+> => {
+  return useMutation(getAddGalleryPhotoMutationOptions(options));
+};
+
+/**
+ * @summary Update an expedition
+ */
+export const getUpdateExpeditionUrl = (id: number) => {
+  return `/api/admin/expeditions/${id}`;
+};
+
+export const updateExpedition = async (
+  id: number,
+  updateExpeditionBody: UpdateExpeditionBody,
+  options?: RequestInit,
+): Promise<Expedition> => {
+  return customFetch<Expedition>(getUpdateExpeditionUrl(id), {
+    ...options,
+    method: "PUT",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(updateExpeditionBody),
+  });
+};
+
+export const getUpdateExpeditionMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateExpedition>>,
+    TError,
+    { id: number; data: BodyType<UpdateExpeditionBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateExpedition>>,
+  TError,
+  { id: number; data: BodyType<UpdateExpeditionBody> },
+  TContext
+> => {
+  const mutationKey = ["updateExpedition"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateExpedition>>,
+    { id: number; data: BodyType<UpdateExpeditionBody> }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return updateExpedition(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateExpeditionMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateExpedition>>
+>;
+export type UpdateExpeditionMutationBody = BodyType<UpdateExpeditionBody>;
+export type UpdateExpeditionMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Update an expedition
+ */
+export const useUpdateExpedition = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateExpedition>>,
+    TError,
+    { id: number; data: BodyType<UpdateExpeditionBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateExpedition>>,
+  TError,
+  { id: number; data: BodyType<UpdateExpeditionBody> },
+  TContext
+> => {
+  return useMutation(getUpdateExpeditionMutationOptions(options));
+};
+
+/**
+ * @summary Delete an expedition
+ */
+export const getDeleteExpeditionUrl = (id: number) => {
+  return `/api/admin/expeditions/${id}`;
+};
+
+export const deleteExpedition = async (
+  id: number,
+  options?: RequestInit,
+): Promise<SuccessResponse> => {
+  return customFetch<SuccessResponse>(getDeleteExpeditionUrl(id), {
+    ...options,
+    method: "DELETE",
+  });
+};
+
+export const getDeleteExpeditionMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteExpedition>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteExpedition>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  const mutationKey = ["deleteExpedition"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteExpedition>>,
+    { id: number }
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return deleteExpedition(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteExpeditionMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteExpedition>>
+>;
+
+export type DeleteExpeditionMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Delete an expedition
+ */
+export const useDeleteExpedition = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteExpedition>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof deleteExpedition>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  return useMutation(getDeleteExpeditionMutationOptions(options));
+};
+
+/**
+ * @summary Add a member reader to an expedition
+ */
+export const getAddExpeditionReaderUrl = (id: number) => {
+  return `/api/admin/expeditions/${id}/readers`;
+};
+
+export const addExpeditionReader = async (
+  id: number,
+  addReaderBody: AddReaderBody,
+  options?: RequestInit,
+): Promise<SuccessResponse> => {
+  return customFetch<SuccessResponse>(getAddExpeditionReaderUrl(id), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(addReaderBody),
+  });
+};
+
+export const getAddExpeditionReaderMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof addExpeditionReader>>,
+    TError,
+    { id: number; data: BodyType<AddReaderBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof addExpeditionReader>>,
+  TError,
+  { id: number; data: BodyType<AddReaderBody> },
+  TContext
+> => {
+  const mutationKey = ["addExpeditionReader"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof addExpeditionReader>>,
+    { id: number; data: BodyType<AddReaderBody> }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return addExpeditionReader(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type AddExpeditionReaderMutationResult = NonNullable<
+  Awaited<ReturnType<typeof addExpeditionReader>>
+>;
+export type AddExpeditionReaderMutationBody = BodyType<AddReaderBody>;
+export type AddExpeditionReaderMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Add a member reader to an expedition
+ */
+export const useAddExpeditionReader = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof addExpeditionReader>>,
+    TError,
+    { id: number; data: BodyType<AddReaderBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof addExpeditionReader>>,
+  TError,
+  { id: number; data: BodyType<AddReaderBody> },
+  TContext
+> => {
+  return useMutation(getAddExpeditionReaderMutationOptions(options));
+};
+
+/**
+ * @summary Delete a gallery photo
+ */
+export const getDeleteGalleryPhotoUrl = (id: number) => {
+  return `/api/admin/gallery/${id}`;
+};
+
+export const deleteGalleryPhoto = async (
+  id: number,
+  options?: RequestInit,
+): Promise<SuccessResponse> => {
+  return customFetch<SuccessResponse>(getDeleteGalleryPhotoUrl(id), {
+    ...options,
+    method: "DELETE",
+  });
+};
+
+export const getDeleteGalleryPhotoMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteGalleryPhoto>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteGalleryPhoto>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  const mutationKey = ["deleteGalleryPhoto"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteGalleryPhoto>>,
+    { id: number }
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return deleteGalleryPhoto(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteGalleryPhotoMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteGalleryPhoto>>
+>;
+
+export type DeleteGalleryPhotoMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Delete a gallery photo
+ */
+export const useDeleteGalleryPhoto = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteGalleryPhoto>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof deleteGalleryPhoto>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  return useMutation(getDeleteGalleryPhotoMutationOptions(options));
+};
 
 /**
  * @summary Update a literary country

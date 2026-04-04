@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { BookOpen, Globe, Users, Vote, Plus, Trash2, KeyRound, Pencil, Check, X } from "lucide-react";
+import { BookOpen, Globe, Users, Vote, Plus, Trash2, KeyRound, Pencil, Check, X, ChevronDown, ChevronUp, Camera, Image } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,12 +38,21 @@ import {
   useUpdateCurrentBook,
   useGetLiteraryCountries,
   useUpdateLiteraryCountry,
+  useGetCountryExpeditions,
+  useGetCountryGallery,
+  useAddExpedition,
+  useUpdateExpedition,
+  useDeleteExpedition,
+  useAddGalleryPhoto,
+  useDeleteGalleryPhoto,
   getGetVotingSessionQueryKey,
   getGetVotingBooksQueryKey,
   getGetVotingCodesQueryKey,
   getGetAdminLeaderboardQueryKey,
   getGetCurrentBookQueryKey,
   getGetLiteraryCountriesQueryKey,
+  getGetCountryExpeditionsQueryKey,
+  getGetCountryGalleryQueryKey,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -590,6 +599,194 @@ function CurrentBookAdminTab() {
   );
 }
 
+function CountryExpeditionsPanel({ countryId, countryEmoji }: { countryId: number; countryEmoji: string }) {
+  const queryClient = useQueryClient();
+  const { data: expeditions = [] } = useGetCountryExpeditions(countryId);
+  const { data: gallery = [] } = useGetCountryGallery(countryId);
+  const addExpedition = useAddExpedition();
+  const updateExpedition = useUpdateExpedition();
+  const deleteExpedition = useDeleteExpedition();
+  const addPhoto = useAddGalleryPhoto();
+  const deletePhoto = useDeleteGalleryPhoto();
+  const { toast } = useToast();
+
+  const [showForm, setShowForm] = useState(false);
+  const [editingExpId, setEditingExpId] = useState<number | null>(null);
+  const [form, setForm] = useState({ title: "", author: "", coverUrl: "", startDate: "", endDate: "", closingActivity: "none", closingActivityDesc: "", description: "" });
+  const [photoUrl, setPhotoUrl] = useState("");
+  const [photoCaption, setPhotoCaption] = useState("");
+
+  const blankForm = () => ({ title: "", author: "", coverUrl: "", startDate: "", endDate: "", closingActivity: "none", closingActivityDesc: "", description: "" });
+
+  const invalidate = () => {
+    queryClient.invalidateQueries({ queryKey: getGetCountryExpeditionsQueryKey(countryId) });
+    queryClient.invalidateQueries({ queryKey: getGetCountryGalleryQueryKey(countryId) });
+  };
+
+  const handleSaveExp = () => {
+    if (!form.title || !form.author) {
+      toast({ title: "Título y autora son requeridos", variant: "destructive" });
+      return;
+    }
+    if (editingExpId) {
+      updateExpedition.mutate({ id: editingExpId, data: form }, {
+        onSuccess: () => { invalidate(); setEditingExpId(null); setForm(blankForm()); toast({ title: "Expedición actualizada" }); },
+        onError: () => toast({ title: "Error", variant: "destructive" }),
+      });
+    } else {
+      addExpedition.mutate({ id: countryId, data: form }, {
+        onSuccess: () => { invalidate(); setShowForm(false); setForm(blankForm()); toast({ title: "Expedición añadida" }); },
+        onError: () => toast({ title: "Error", variant: "destructive" }),
+      });
+    }
+  };
+
+  const handleDeleteExp = (id: number) => {
+    deleteExpedition.mutate({ id }, {
+      onSuccess: () => { invalidate(); toast({ title: "Eliminada" }); },
+    });
+  };
+
+  const handleAddPhoto = () => {
+    if (!photoUrl) return;
+    addPhoto.mutate({ id: countryId, data: { url: photoUrl, caption: photoCaption } }, {
+      onSuccess: () => { invalidate(); setPhotoUrl(""); setPhotoCaption(""); toast({ title: "Foto añadida" }); },
+    });
+  };
+
+  const handleDeletePhoto = (id: number) => {
+    deletePhoto.mutate({ id }, { onSuccess: () => { invalidate(); toast({ title: "Foto eliminada" }); } });
+  };
+
+  const expFormFields = (
+    <div className="space-y-3 border border-gray-100 rounded-xl p-4 bg-gray-50">
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-1">
+          <label className="text-xs font-semibold text-gray-600">Título *</label>
+          <Input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} placeholder="Título del libro" className="h-8 text-sm" />
+        </div>
+        <div className="space-y-1">
+          <label className="text-xs font-semibold text-gray-600">Autora *</label>
+          <Input value={form.author} onChange={e => setForm(f => ({ ...f, author: e.target.value }))} placeholder="Nombre del autor" className="h-8 text-sm" />
+        </div>
+      </div>
+      <div className="space-y-1">
+        <label className="text-xs font-semibold text-gray-600">URL portada</label>
+        <Input value={form.coverUrl} onChange={e => setForm(f => ({ ...f, coverUrl: e.target.value }))} placeholder="https://..." className="h-8 text-sm" />
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-1">
+          <label className="text-xs font-semibold text-gray-600">Fecha inicio</label>
+          <Input value={form.startDate} onChange={e => setForm(f => ({ ...f, startDate: e.target.value }))} placeholder="ej: marzo 2025" className="h-8 text-sm" />
+        </div>
+        <div className="space-y-1">
+          <label className="text-xs font-semibold text-gray-600">Fecha fin</label>
+          <Input value={form.endDate} onChange={e => setForm(f => ({ ...f, endDate: e.target.value }))} placeholder="ej: abril 2025" className="h-8 text-sm" />
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-1">
+          <label className="text-xs font-semibold text-gray-600">Actividad de cierre</label>
+          <select
+            value={form.closingActivity}
+            onChange={e => setForm(f => ({ ...f, closingActivity: e.target.value }))}
+            className="h-8 text-sm w-full border border-gray-200 rounded-md px-2"
+          >
+            <option value="none">Sin actividad</option>
+            <option value="cinema">🎬 Cine en casa</option>
+            <option value="visit">📍 Visita al lugar</option>
+          </select>
+        </div>
+        <div className="space-y-1">
+          <label className="text-xs font-semibold text-gray-600">Desc. actividad</label>
+          <Input value={form.closingActivityDesc} onChange={e => setForm(f => ({ ...f, closingActivityDesc: e.target.value }))} placeholder="Descripción breve" className="h-8 text-sm" />
+        </div>
+      </div>
+      <div className="space-y-1">
+        <label className="text-xs font-semibold text-gray-600">Notas / reseña corta</label>
+        <Input value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder="Opcional" className="h-8 text-sm" />
+      </div>
+      <div className="flex gap-2">
+        <Button size="sm" className="bg-[#E8523A] text-white h-8 flex-1" onClick={handleSaveExp}>
+          <Check className="w-3 h-3 mr-1" /> {editingExpId ? "Actualizar" : "Añadir expedición"}
+        </Button>
+        <Button size="sm" variant="outline" className="h-8" onClick={() => { setShowForm(false); setEditingExpId(null); setForm(blankForm()); }}>
+          <X className="w-3 h-3 mr-1" /> Cancelar
+        </Button>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="space-y-5 mt-4 border-t pt-4">
+      {/* Expediciones */}
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <h4 className="text-sm font-bold text-gray-700">📚 Expediciones completadas</h4>
+          {!showForm && !editingExpId && (
+            <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => setShowForm(true)}>
+              <Plus className="w-3 h-3 mr-1" /> Nueva
+            </Button>
+          )}
+        </div>
+
+        {(showForm && !editingExpId) && expFormFields}
+
+        {expeditions.length === 0 && !showForm ? (
+          <p className="text-xs text-gray-400 italic">Ninguna expedición registrada aún.</p>
+        ) : (
+          <div className="space-y-2">
+            {expeditions.map(exp => (
+              <div key={exp.id} className="text-sm">
+                {editingExpId === exp.id ? expFormFields : (
+                  <div className="flex items-center gap-2 bg-white border border-gray-100 rounded-lg px-3 py-2">
+                    <span className="flex-1 font-medium text-gray-800 truncate">{exp.title}</span>
+                    <span className="text-xs text-gray-400">{exp.author}</span>
+                    <Button size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => { setEditingExpId(exp.id); setShowForm(false); setForm({ title: exp.title, author: exp.author, coverUrl: exp.coverUrl, startDate: exp.startDate, endDate: exp.endDate, closingActivity: exp.closingActivity, closingActivityDesc: exp.closingActivityDesc, description: exp.description }); }}>
+                      <Pencil className="w-3 h-3" />
+                    </Button>
+                    <Button size="sm" variant="ghost" className="h-6 w-6 p-0 text-red-400 hover:text-red-600" onClick={() => handleDeleteExp(exp.id)}>
+                      <Trash2 className="w-3 h-3" />
+                    </Button>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Galería */}
+      <div>
+        <h4 className="text-sm font-bold text-gray-700 mb-3">📸 Galería de actividades</h4>
+        <div className="flex gap-2 mb-3">
+          <Input value={photoUrl} onChange={e => setPhotoUrl(e.target.value)} placeholder="URL de foto" className="h-8 text-sm flex-1" />
+          <Input value={photoCaption} onChange={e => setPhotoCaption(e.target.value)} placeholder="Pie de foto" className="h-8 text-sm w-36" />
+          <Button size="sm" className="bg-[#4DC8E0] text-white h-8 px-3" onClick={handleAddPhoto} disabled={!photoUrl}>
+            <Plus className="w-3 h-3" />
+          </Button>
+        </div>
+        {gallery.length === 0 ? (
+          <p className="text-xs text-gray-400 italic">Sin fotos en la galería.</p>
+        ) : (
+          <div className="grid grid-cols-3 gap-2">
+            {gallery.map(p => (
+              <div key={p.id} className="relative group">
+                <img src={p.url} alt={p.caption} className="w-full aspect-square object-cover rounded-lg border border-gray-100" />
+                <button
+                  onClick={() => handleDeletePhoto(p.id)}
+                  className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-xs"
+                >×</button>
+                {p.caption && <p className="text-xs text-gray-500 mt-1 truncate">{p.caption}</p>}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function LiteraryCountriesAdminTab() {
   const queryClient = useQueryClient();
   const { data: countries } = useGetLiteraryCountries();
@@ -598,6 +795,7 @@ function LiteraryCountriesAdminTab() {
 
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editForm, setEditForm] = useState({ name: "", emoji: "", description: "", color: "", booksRead: 0 });
+  const [expandedId, setExpandedId] = useState<number | null>(null);
 
   const startEdit = (c: { id: number; name: string; emoji: string; description: string; color: string; booksRead: number }) => {
     setEditingId(c.id);
@@ -628,7 +826,7 @@ function LiteraryCountriesAdminTab() {
 
       <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
         {countries?.map(c => (
-          <Card key={c.id} className="overflow-hidden">
+          <Card key={c.id} className={`overflow-hidden ${expandedId === c.id ? "md:col-span-2 xl:col-span-3" : ""}`}>
             {/* Preview header */}
             <div className="h-16 flex items-center px-5 gap-3 relative" style={{ backgroundColor: c.color }}>
               <span className="text-3xl">{editingId === c.id ? editForm.emoji : c.emoji}</span>
@@ -678,14 +876,28 @@ function LiteraryCountriesAdminTab() {
                   </div>
                 </div>
               ) : (
-                <div className="space-y-2">
+                <div className="space-y-3">
                   <p className="text-sm text-gray-600">{c.description}</p>
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between gap-2">
                     <span className="text-xs text-gray-400">📚 {c.booksRead} libros leídos</span>
-                    <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => startEdit(c)}>
-                      <Pencil className="w-3 h-3 mr-1" /> Editar
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className={`h-7 text-xs ${expandedId === c.id ? "border-[#4DC8E0] text-[#4DC8E0]" : ""}`}
+                        onClick={() => setExpandedId(expandedId === c.id ? null : c.id)}
+                      >
+                        {expandedId === c.id ? <ChevronUp className="w-3 h-3 mr-1" /> : <ChevronDown className="w-3 h-3 mr-1" />}
+                        Expediciones
+                      </Button>
+                      <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => startEdit(c)}>
+                        <Pencil className="w-3 h-3 mr-1" /> Editar
+                      </Button>
+                    </div>
                   </div>
+                  {expandedId === c.id && (
+                    <CountryExpeditionsPanel countryId={c.id} countryEmoji={c.emoji} />
+                  )}
                 </div>
               )}
             </CardContent>

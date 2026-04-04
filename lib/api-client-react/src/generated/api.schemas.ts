@@ -192,3 +192,69 @@ export interface UpdateLiteraryCountryBody {
   color?: string;
   booksRead?: number;
 }
+
+export interface ExpeditionReader {
+  id: number;
+  alias: string;
+  avatar: string;
+}
+
+export interface Expedition {
+  id: number;
+  countryId: number;
+  title: string;
+  author: string;
+  coverUrl: string;
+  startDate: string;
+  endDate: string;
+  closingActivity: string;
+  closingActivityDesc: string;
+  description: string;
+  displayOrder: number;
+  createdAt: string;
+  readers: ExpeditionReader[];
+}
+
+export interface AddExpeditionBody {
+  title: string;
+  author: string;
+  coverUrl?: string;
+  startDate?: string;
+  endDate?: string;
+  closingActivity?: string;
+  closingActivityDesc?: string;
+  description?: string;
+}
+
+export interface UpdateExpeditionBody {
+  title?: string;
+  author?: string;
+  coverUrl?: string;
+  startDate?: string;
+  endDate?: string;
+  closingActivity?: string;
+  closingActivityDesc?: string;
+  description?: string;
+}
+
+export interface GalleryPhoto {
+  id: number;
+  countryId: number;
+  url: string;
+  caption: string;
+  displayOrder: number;
+  createdAt: string;
+}
+
+export interface AddGalleryPhotoBody {
+  url: string;
+  caption?: string;
+}
+
+export interface AddReaderBody {
+  memberId: number;
+}
+
+export interface SuccessResponse {
+  success: boolean;
+}
