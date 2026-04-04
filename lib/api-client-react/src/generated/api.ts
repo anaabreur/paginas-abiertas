@@ -29,6 +29,7 @@ import type {
   CreateVotingSessionBody,
   CurrentBook,
   CurrentBookResponse,
+  DeleteMember200,
   ErrorResponse,
   Expedition,
   GalleryPhoto,
@@ -2636,6 +2637,90 @@ export const useArchiveMember = <
   TContext
 > => {
   return useMutation(getArchiveMemberMutationOptions(options));
+};
+
+/**
+ * @summary Permanently delete a member
+ */
+export const getDeleteMemberUrl = (id: number) => {
+  return `/api/admin/members/${id}`;
+};
+
+export const deleteMember = async (
+  id: number,
+  options?: RequestInit,
+): Promise<DeleteMember200> => {
+  return customFetch<DeleteMember200>(getDeleteMemberUrl(id), {
+    ...options,
+    method: "DELETE",
+  });
+};
+
+export const getDeleteMemberMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteMember>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteMember>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  const mutationKey = ["deleteMember"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteMember>>,
+    { id: number }
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return deleteMember(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteMemberMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteMember>>
+>;
+
+export type DeleteMemberMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Permanently delete a member
+ */
+export const useDeleteMember = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteMember>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof deleteMember>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  return useMutation(getDeleteMemberMutationOptions(options));
 };
 
 /**

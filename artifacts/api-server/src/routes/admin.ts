@@ -387,6 +387,23 @@ router.put("/admin/leaderboard/:id", async (req, res): Promise<void> => {
   });
 });
 
+router.delete("/admin/members/:id", async (req, res): Promise<void> => {
+  const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const id = parseInt(raw, 10);
+
+  const [deleted] = await db
+    .delete(membersTable)
+    .where(eq(membersTable.id, id))
+    .returning();
+
+  if (!deleted) {
+    res.status(404).json({ message: "Miembro no encontrado" });
+    return;
+  }
+
+  res.json({ success: true });
+});
+
 router.post("/admin/leaderboard/:id/archive", async (req, res): Promise<void> => {
   const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const id = parseInt(raw, 10);

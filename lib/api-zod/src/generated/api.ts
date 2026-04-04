@@ -624,6 +624,17 @@ export const ArchiveMemberResponse = zod.object({
 });
 
 /**
+ * @summary Permanently delete a member
+ */
+export const DeleteMemberParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const DeleteMemberResponse = zod.object({
+  success: zod.boolean().optional(),
+});
+
+/**
  * @summary Update or set the current book
  */
 export const UpdateCurrentBookBody = zod.object({

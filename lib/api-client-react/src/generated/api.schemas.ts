@@ -271,3 +271,7 @@ export interface AddReaderBody {
 export interface SuccessResponse {
   success: boolean;
 }
+
+export type DeleteMember200 = {
+  success?: boolean;
+};

@@ -18,6 +18,7 @@ export * from "./castVoteBody";
 export * from "./createVotingSessionBody";
 export * from "./currentBook";
 export * from "./currentBookResponse";
+export * from "./deleteMember200";
 export * from "./errorResponse";
 export * from "./expedition";
 export * from "./expeditionReader";

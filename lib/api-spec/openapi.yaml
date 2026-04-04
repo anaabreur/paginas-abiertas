@@ -635,6 +635,28 @@ paths:
               schema:
                 $ref: "#/components/schemas/LeaderboardMember"
 
+  /admin/members/{id}:
+    delete:
+      operationId: deleteMember
+      tags: [admin]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      summary: Permanently delete a member
+      responses:
+        "200":
+          description: Member deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+
   /admin/current-book:
     put:
       operationId: updateCurrentBook

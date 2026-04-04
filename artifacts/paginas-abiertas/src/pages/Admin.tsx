@@ -37,6 +37,7 @@ import {
   useAddMember,
   useUpdateMember,
   useArchiveMember,
+  useDeleteMember,
   useGetCurrentBook,
   useUpdateCurrentBook,
   useGetLiteraryCountries,
@@ -492,6 +493,7 @@ function LeaderboardAdminTab() {
   const addMember = useAddMember();
   const updateMember = useUpdateMember();
   const archiveMember = useArchiveMember();
+  const deleteMember = useDeleteMember();
   const { toast } = useToast();
 
   const [isAddOpen, setIsAddOpen] = useState(false);
@@ -522,6 +524,17 @@ function LeaderboardAdminTab() {
     if (confirm("¿Seguro que quieres archivar este miembro? No aparecerá en el ranking público.")) {
       archiveMember.mutate({ id }, {
         onSuccess: () => queryClient.invalidateQueries({ queryKey: getGetAdminLeaderboardQueryKey() })
+      });
+    }
+  };
+
+  const handleDeleteMember = (id: number) => {
+    if (confirm("¿Eliminar permanentemente este miembro? Esta acción no se puede deshacer.")) {
+      deleteMember.mutate({ id }, {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getGetAdminLeaderboardQueryKey() });
+          toast({ title: "Miembro eliminado", description: "La exploradora fue eliminada definitivamente." });
+        }
       });
     }
   };
@@ -600,8 +613,12 @@ function LeaderboardAdminTab() {
                   />
                 </TableCell>
                 <TableCell>
-                  {!m.archived && (
-                    <Button variant="ghost" size="icon" onClick={() => handleArchive(m.id)} className="text-red-500 hover:text-red-700 hover:bg-red-50">
+                  {m.archived ? (
+                    <Button variant="ghost" size="icon" title="Eliminar permanentemente" onClick={() => handleDeleteMember(m.id)} className="text-red-500 hover:text-red-700 hover:bg-red-50">
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  ) : (
+                    <Button variant="ghost" size="icon" title="Archivar (ocultar del ranking)" onClick={() => handleArchive(m.id)} className="text-gray-400 hover:text-red-600 hover:bg-red-50">
                       <Trash2 className="w-4 h-4" />
                     </Button>
                   )}
