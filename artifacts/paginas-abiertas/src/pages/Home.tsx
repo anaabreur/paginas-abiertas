@@ -311,6 +311,109 @@ function GenresSection() {
   );
 }
 
+function LiteraryPassportMap() {
+  const { data: countries } = useGetLiteraryCountries();
+
+  if (!countries || countries.length === 0) return null;
+
+  const visited = countries.filter(c => c.booksRead > 0);
+  const total = countries.length;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 30 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, delay: 0.2 }}
+      className="mt-16 max-w-4xl mx-auto"
+    >
+      {/* Header */}
+      <div className="text-center mb-8">
+        <span className="text-3xl mb-3 block">🗺️</span>
+        <h3 className="font-display font-bold text-2xl text-[#0F1F3D] mb-2">
+          Mapa de Exploración Literaria
+        </h3>
+        <p className="text-gray-500 text-sm">
+          {visited.length} de {total} países explorados — ¡sigamos viajando!
+        </p>
+        {/* Progress bar */}
+        <div className="w-48 mx-auto mt-3 h-2 bg-gray-100 rounded-full overflow-hidden">
+          <div
+            className="h-full rounded-full transition-all duration-1000"
+            style={{ width: `${(visited.length / total) * 100}%`, background: "linear-gradient(90deg, #4DC8E0, #E8523A)" }}
+          />
+        </div>
+      </div>
+
+      {/* Country grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+        {countries.map((c, i) => {
+          const isVisited = c.booksRead > 0;
+          return (
+            <motion.div
+              key={c.id}
+              initial={{ opacity: 0, scale: 0.85 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: i * 0.07, duration: 0.35 }}
+              className="relative"
+            >
+              {isVisited ? (
+                <Link href={`/paises/${c.id}`} className="block group">
+                  <div
+                    className="relative rounded-xl overflow-hidden shadow-md border-2 border-transparent group-hover:border-white/30 transition-all duration-200"
+                    style={{ backgroundColor: c.color }}
+                  >
+                    {/* Passport dashed border */}
+                    <div className="absolute inset-2 border border-white/25 rounded-lg border-dashed pointer-events-none" />
+
+                    <div className="p-4 flex flex-col items-center gap-2 text-center relative">
+                      {/* Big emoji */}
+                      <span className="text-4xl drop-shadow">{c.emoji}</span>
+                      <span className="font-display font-bold text-white text-sm leading-tight">{c.name}</span>
+                      <span className="text-white/70 text-xs">
+                        📚 {c.booksRead} {c.booksRead === 1 ? "libro" : "libros"}
+                      </span>
+
+                      {/* Passport stamp overlay */}
+                      <div className="absolute top-2 right-2 bg-white/20 backdrop-blur rounded-full px-2 py-0.5 text-white text-xs font-bold">
+                        ✓
+                      </div>
+                    </div>
+                  </div>
+                  <p className="text-center text-xs text-gray-400 mt-1.5 font-medium group-hover:text-[#E8523A] transition-colors">
+                    Explorar →
+                  </p>
+                </Link>
+              ) : (
+                <div className="rounded-xl overflow-hidden border-2 border-dashed border-gray-200 bg-gray-50">
+                  <div className="p-4 flex flex-col items-center gap-2 text-center">
+                    {/* Greyed emoji */}
+                    <span className="text-4xl grayscale opacity-40">{c.emoji}</span>
+                    <span className="font-display font-bold text-gray-400 text-sm leading-tight">{c.name}</span>
+                    {/* Lock */}
+                    <span className="text-gray-300 text-lg">🔒</span>
+                  </div>
+                </div>
+              )}
+            </motion.div>
+          );
+        })}
+      </div>
+
+      {visited.length === total && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="text-center mt-8 bg-[#F5E642]/20 border border-[#F5E642]/40 rounded-2xl py-5 px-6"
+        >
+          <span className="text-3xl mb-2 block">🏆</span>
+          <p className="font-display font-bold text-[#0F1F3D] text-lg">¡Han explorado todos los países!</p>
+          <p className="text-gray-500 text-sm mt-1">Leyendas Literarias del club, ¡felicidades!</p>
+        </motion.div>
+      )}
+    </motion.div>
+  );
+}
+
 function VotingSection() {
   const { data: sessionData } = useGetVotingSession();
   const { data: books, refetch } = useGetVotingBooks();
@@ -377,10 +480,14 @@ function VotingSection() {
         </div>
 
         {!session ? (
-          <div className="text-center py-12 text-gray-500">
-            No hay ninguna votación activa en este momento.
-          </div>
+          <>
+            <div className="text-center py-12 text-gray-500">
+              No hay ninguna votación activa en este momento.
+            </div>
+            <LiteraryPassportMap />
+          </>
         ) : (
+          <>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {books?.map((book) => {
               const percent = totalVotes > 0 ? Math.round((book.votes / totalVotes) * 100) : 0;
@@ -429,6 +536,8 @@ function VotingSection() {
               );
             })}
           </div>
+          {!isOpen && <LiteraryPassportMap />}
+          </>
         )}
       </div>
 
@@ -796,14 +905,17 @@ function Footer() {
 
           <div className="flex flex-col items-center md:items-end">
             <h4 className="font-bold mb-4 uppercase text-xs tracking-wider text-gray-500">Síguenos</h4>
-            <div className="flex gap-4">
-              <a href="#" className="h-10 w-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-[#E8523A] transition-colors">
-                IG
-              </a>
-              <a href="#" className="h-10 w-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-[#4DC8E0] transition-colors">
-                TK
-              </a>
-            </div>
+            <a
+              href="https://www.tiktok.com/@paginasabiertas"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="h-11 w-11 rounded-full bg-white/5 flex items-center justify-center hover:bg-[#010101] transition-colors group"
+              aria-label="TikTok"
+            >
+              <svg viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5 text-gray-300 group-hover:text-white transition-colors">
+                <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.74a8.26 8.26 0 0 0 4.82 1.53V6.79a4.85 4.85 0 0 1-1.05-.1z"/>
+              </svg>
+            </a>
           </div>
         </div>
         
