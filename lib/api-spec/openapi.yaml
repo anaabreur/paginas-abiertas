@@ -458,6 +458,48 @@ paths:
               schema:
                 $ref: "#/components/schemas/CandidateBook"
 
+  /admin/voting/books/{id}:
+    put:
+      operationId: updateCandidateBook
+      tags: [admin]
+      summary: Update a candidate book
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateBookBody"
+      responses:
+        "200":
+          description: Book updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CandidateBook"
+    delete:
+      operationId: deleteCandidateBook
+      tags: [admin]
+      summary: Delete a candidate book
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Book deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
   /admin/voting/codes:
     post:
       operationId: generateVotingCodes
@@ -826,6 +868,20 @@ components:
         - genre
         - coverUrl
         - synopsis
+
+    UpdateBookBody:
+      type: object
+      properties:
+        title:
+          type: string
+        author:
+          type: string
+        genre:
+          type: string
+        coverUrl:
+          type: string
+        synopsis:
+          type: string
 
     GenerateCodesBody:
       type: object

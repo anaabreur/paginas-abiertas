@@ -150,6 +150,52 @@ router.post("/admin/voting/books", async (req, res): Promise<void> => {
   });
 });
 
+router.put("/admin/voting/books/:id", async (req, res): Promise<void> => {
+  const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const id = parseInt(raw, 10);
+  const { title, author, genre, coverUrl, synopsis } = req.body as Partial<{
+    title: string;
+    author: string;
+    genre: string;
+    coverUrl: string;
+    synopsis: string;
+  }>;
+
+  const data: Record<string, unknown> = {};
+  if (title !== undefined) data.title = title;
+  if (author !== undefined) data.author = author;
+  if (genre !== undefined) data.genre = genre;
+  if (coverUrl !== undefined) data.coverUrl = coverUrl;
+  if (synopsis !== undefined) data.synopsis = synopsis;
+
+  const [updated] = await db
+    .update(candidateBooksTable)
+    .set(data)
+    .where(eq(candidateBooksTable.id, id))
+    .returning();
+
+  if (!updated) {
+    res.status(404).json({ message: "Libro no encontrado" });
+    return;
+  }
+
+  res.json({
+    ...updated,
+    createdAt: updated.createdAt.toISOString(),
+  });
+});
+
+router.delete("/admin/voting/books/:id", async (req, res): Promise<void> => {
+  const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const id = parseInt(raw, 10);
+
+  await db
+    .delete(candidateBooksTable)
+    .where(eq(candidateBooksTable.id, id));
+
+  res.json({ success: true });
+});
+
 router.get("/admin/voting/codes", async (req, res): Promise<void> => {
   const sessions = await db
     .select()

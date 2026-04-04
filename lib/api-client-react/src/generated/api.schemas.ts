@@ -127,6 +127,14 @@ export interface AddBookBody {
   synopsis: string;
 }
 
+export interface UpdateBookBody {
+  title?: string;
+  author?: string;
+  genre?: string;
+  coverUrl?: string;
+  synopsis?: string;
+}
+
 export type GenerateCodesBodyType =
   (typeof GenerateCodesBodyType)[keyof typeof GenerateCodesBodyType];
 

@@ -434,6 +434,44 @@ export const AddCandidateBookResponse = zod.object({
 });
 
 /**
+ * @summary Update a candidate book
+ */
+export const UpdateCandidateBookParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const UpdateCandidateBookBody = zod.object({
+  title: zod.string().optional(),
+  author: zod.string().optional(),
+  genre: zod.string().optional(),
+  coverUrl: zod.string().optional(),
+  synopsis: zod.string().optional(),
+});
+
+export const UpdateCandidateBookResponse = zod.object({
+  id: zod.number(),
+  sessionId: zod.number(),
+  title: zod.string(),
+  author: zod.string(),
+  genre: zod.string(),
+  coverUrl: zod.string(),
+  synopsis: zod.string(),
+  votes: zod.number(),
+  isWinner: zod.boolean(),
+});
+
+/**
+ * @summary Delete a candidate book
+ */
+export const DeleteCandidateBookParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const DeleteCandidateBookResponse = zod.object({
+  success: zod.boolean(),
+});
+
+/**
  * @summary Generate voting codes for current session
  */
 export const GenerateVotingCodesBody = zod.object({

@@ -37,6 +37,7 @@ import type {
   LeaderboardMember,
   LiteraryCountry,
   SuccessResponse,
+  UpdateBookBody,
   UpdateCurrentBookBody,
   UpdateExpeditionBody,
   UpdateLiteraryCountryBody,
@@ -1883,6 +1884,177 @@ export const useAddCandidateBook = <
   TContext
 > => {
   return useMutation(getAddCandidateBookMutationOptions(options));
+};
+
+/**
+ * @summary Update a candidate book
+ */
+export const getUpdateCandidateBookUrl = (id: number) => {
+  return `/api/admin/voting/books/${id}`;
+};
+
+export const updateCandidateBook = async (
+  id: number,
+  updateBookBody: UpdateBookBody,
+  options?: RequestInit,
+): Promise<CandidateBook> => {
+  return customFetch<CandidateBook>(getUpdateCandidateBookUrl(id), {
+    ...options,
+    method: "PUT",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(updateBookBody),
+  });
+};
+
+export const getUpdateCandidateBookMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateCandidateBook>>,
+    TError,
+    { id: number; data: BodyType<UpdateBookBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateCandidateBook>>,
+  TError,
+  { id: number; data: BodyType<UpdateBookBody> },
+  TContext
+> => {
+  const mutationKey = ["updateCandidateBook"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateCandidateBook>>,
+    { id: number; data: BodyType<UpdateBookBody> }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return updateCandidateBook(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateCandidateBookMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateCandidateBook>>
+>;
+export type UpdateCandidateBookMutationBody = BodyType<UpdateBookBody>;
+export type UpdateCandidateBookMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Update a candidate book
+ */
+export const useUpdateCandidateBook = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateCandidateBook>>,
+    TError,
+    { id: number; data: BodyType<UpdateBookBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateCandidateBook>>,
+  TError,
+  { id: number; data: BodyType<UpdateBookBody> },
+  TContext
+> => {
+  return useMutation(getUpdateCandidateBookMutationOptions(options));
+};
+
+/**
+ * @summary Delete a candidate book
+ */
+export const getDeleteCandidateBookUrl = (id: number) => {
+  return `/api/admin/voting/books/${id}`;
+};
+
+export const deleteCandidateBook = async (
+  id: number,
+  options?: RequestInit,
+): Promise<SuccessResponse> => {
+  return customFetch<SuccessResponse>(getDeleteCandidateBookUrl(id), {
+    ...options,
+    method: "DELETE",
+  });
+};
+
+export const getDeleteCandidateBookMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteCandidateBook>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteCandidateBook>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  const mutationKey = ["deleteCandidateBook"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteCandidateBook>>,
+    { id: number }
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return deleteCandidateBook(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteCandidateBookMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteCandidateBook>>
+>;
+
+export type DeleteCandidateBookMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Delete a candidate book
+ */
+export const useDeleteCandidateBook = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteCandidateBook>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof deleteCandidateBook>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  return useMutation(getDeleteCandidateBookMutationOptions(options));
 };
 
 /**

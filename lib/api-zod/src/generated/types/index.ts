@@ -29,6 +29,7 @@ export * from "./leaderboardMember";
 export * from "./leaderboardMemberRank";
 export * from "./literaryCountry";
 export * from "./successResponse";
+export * from "./updateBookBody";
 export * from "./updateCurrentBookBody";
 export * from "./updateExpeditionBody";
 export * from "./updateLiteraryCountryBody";

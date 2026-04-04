@@ -28,6 +28,8 @@ import {
   useOpenVotingSession,
   useGetVotingBooks,
   useAddCandidateBook,
+  useUpdateCandidateBook,
+  useDeleteCandidateBook,
   useGenerateVotingCodes,
   useGetVotingCodes,
   useGetAdminLeaderboard,
@@ -157,13 +159,18 @@ function VotingAdminTab() {
   const closeSession = useCloseVotingSession();
   const openSession = useOpenVotingSession();
   const addBook = useAddCandidateBook();
+  const updateBook = useUpdateCandidateBook();
+  const deleteBook = useDeleteCandidateBook();
   const generateCodes = useGenerateVotingCodes();
 
   const [isNewSessionOpen, setIsNewSessionOpen] = useState(false);
   const [isAddBookOpen, setIsAddBookOpen] = useState(false);
+  const [isEditBookOpen, setIsEditBookOpen] = useState(false);
+  const [editingBookId, setEditingBookId] = useState<number | null>(null);
 
   const sessionForm = useForm({ defaultValues: { title: "", deadline: "" } });
   const bookForm = useForm({ defaultValues: { title: "", author: "", genre: "", coverUrl: "", synopsis: "" } });
+  const editBookForm = useForm({ defaultValues: { title: "", author: "", genre: "", coverUrl: "", synopsis: "" } });
   const codeForm = useForm({ defaultValues: { quantity: 10, type: "standard" as const } });
 
   const handleCreateSession = (values: any) => {
@@ -199,6 +206,41 @@ function VotingAdminTab() {
         toast({ title: "Éxito", description: "Libro añadido" });
       }
     });
+  };
+
+  const handleEditBook = (values: any) => {
+    if (!editingBookId) return;
+    updateBook.mutate({ id: editingBookId, data: values }, {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: getGetVotingBooksQueryKey() });
+        setIsEditBookOpen(false);
+        setEditingBookId(null);
+        editBookForm.reset();
+        toast({ title: "Éxito", description: "Libro actualizado" });
+      }
+    });
+  };
+
+  const handleDeleteBook = (bookId: number) => {
+    if (!confirm("¿Eliminar este libro?")) return;
+    deleteBook.mutate({ id: bookId }, {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: getGetVotingBooksQueryKey() });
+        toast({ title: "Éxito", description: "Libro eliminado" });
+      }
+    });
+  };
+
+  const openEditDialog = (book: any) => {
+    setEditingBookId(book.id);
+    editBookForm.reset({
+      title: book.title,
+      author: book.author,
+      genre: book.genre,
+      coverUrl: book.coverUrl,
+      synopsis: book.synopsis
+    });
+    setIsEditBookOpen(true);
   };
 
   const handleGenerateCodes = (values: any) => {
@@ -287,6 +329,19 @@ function VotingAdminTab() {
                 </form>
               </DialogContent>
             </Dialog>
+            <Dialog open={isEditBookOpen} onOpenChange={setIsEditBookOpen}>
+              <DialogContent>
+                <DialogHeader><DialogTitle>Editar Candidato</DialogTitle></DialogHeader>
+                <form onSubmit={editBookForm.handleSubmit(handleEditBook)} className="space-y-4">
+                  <Input placeholder="Título" {...editBookForm.register("title")} required />
+                  <Input placeholder="Autor" {...editBookForm.register("author")} required />
+                  <Input placeholder="Género (Ej: Fantasía)" {...editBookForm.register("genre")} required />
+                  <Input placeholder="URL de Portada" {...editBookForm.register("coverUrl")} required />
+                  <Textarea placeholder="Sinopsis" {...editBookForm.register("synopsis")} required />
+                  <Button type="submit" className="w-full" disabled={updateBook.isPending}>Guardar Cambios</Button>
+                </form>
+              </DialogContent>
+            </Dialog>
           </CardHeader>
           <CardContent className="pt-0 p-0">
             <Table>
@@ -307,8 +362,10 @@ function VotingAdminTab() {
                       <p className="text-xs text-gray-500">{book.author}</p>
                     </TableCell>
                     <TableCell className="text-right font-mono font-bold text-lg">{book.votes}</TableCell>
-                    <TableCell>
-                      {book.isWinner && <Badge className="bg-yellow-500">Ganador</Badge>}
+                    <TableCell className="text-right space-x-2">
+                      <Button size="sm" variant="ghost" onClick={() => openEditDialog(book)}><Pencil className="w-4 h-4"/></Button>
+                      <Button size="sm" variant="ghost" onClick={() => handleDeleteBook(book.id)}><Trash2 className="w-4 h-4 text-red-500"/></Button>
+                      {book.isWinner && <Badge className="bg-yellow-500 ml-2">Ganador</Badge>}
                     </TableCell>
                   </TableRow>
                 ))}
