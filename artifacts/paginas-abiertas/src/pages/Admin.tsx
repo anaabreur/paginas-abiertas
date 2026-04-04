@@ -312,31 +312,33 @@ function VotingAdminTab() {
           </CardHeader>
           <CardContent className="pt-6">
             {session ? (
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
+              <div>
+                <div className="flex items-center justify-between mb-2">
                   <h3 className="font-bold text-xl">{session.title}</h3>
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm font-medium">{session.status === 'open' ? 'Abierta' : 'Cerrada'}</span>
+                    <Switch 
+                      checked={session.status === 'open'} 
+                      onCheckedChange={handleToggleStatus}
+                      disabled={openSession.isPending || closeSession.isPending}
+                    />
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
                   <p className="text-sm text-gray-500">
                     Creada: {format(new Date(session.createdAt), "dd/MM/yyyy")} 
                     {session.deadline && ` • Cierra: ${format(new Date(session.deadline), "dd/MM/yyyy")}`}
                   </p>
-                </div>
-                <Button size="sm" className="bg-[#E8523A] hover:bg-[#E8523A]/90 text-white" onClick={openEditDeadlineDialog}><Pencil className="w-4 h-4"/></Button>
-                <Dialog open={isEditDeadlineOpen} onOpenChange={setIsEditDeadlineOpen}>
-                  <DialogContent>
-                    <DialogHeader><DialogTitle>Editar Fecha de Cierre</DialogTitle></DialogHeader>
-                    <div className="space-y-4">
-                      <Input type="date" value={editDeadline} onChange={(e) => setEditDeadline(e.target.value)} />
-                      <Button onClick={handleUpdateDeadline} className="w-full" disabled={updateSession.isPending}>Guardar</Button>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-                <div className="flex items-center gap-3 ml-4">
-                  <span className="text-sm font-medium">{session.status === 'open' ? 'Abierta' : 'Cerrada'}</span>
-                  <Switch 
-                    checked={session.status === 'open'} 
-                    onCheckedChange={handleToggleStatus}
-                    disabled={openSession.isPending || closeSession.isPending}
-                  />
+                  <Button size="sm" className="bg-[#E8523A] hover:bg-[#E8523A]/90 text-white ml-2" onClick={openEditDeadlineDialog}><Pencil className="w-4 h-4"/></Button>
+                  <Dialog open={isEditDeadlineOpen} onOpenChange={setIsEditDeadlineOpen}>
+                    <DialogContent>
+                      <DialogHeader><DialogTitle>Editar Fecha de Cierre</DialogTitle></DialogHeader>
+                      <div className="space-y-4">
+                        <Input type="date" value={editDeadline} onChange={(e) => setEditDeadline(e.target.value)} />
+                        <Button onClick={handleUpdateDeadline} className="w-full" disabled={updateSession.isPending}>Guardar</Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
                 </div>
               </div>
             ) : (
