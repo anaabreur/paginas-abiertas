@@ -229,11 +229,11 @@ function VotingAdminTab() {
                   <DialogHeader><DialogTitle>Crear Votación</DialogTitle></DialogHeader>
                   <form onSubmit={sessionForm.handleSubmit(handleCreateSession)} className="space-y-4">
                     <div className="space-y-2">
-                      <FormLabel>Título (Ej: Febrero 2026)</FormLabel>
+                      <label className="text-sm font-medium">Título (Ej: Febrero 2026)</label>
                       <Input {...sessionForm.register("title")} required />
                     </div>
                     <div className="space-y-2">
-                      <FormLabel>Fecha Límite (Opcional)</FormLabel>
+                      <label className="text-sm font-medium">Fecha Límite (Opcional)</label>
                       <Input type="date" {...sessionForm.register("deadline")} />
                     </div>
                     <Button type="submit" className="w-full" disabled={createSession.isPending}>Crear</Button>
@@ -332,11 +332,11 @@ function VotingAdminTab() {
             <form onSubmit={codeForm.handleSubmit(handleGenerateCodes)} className="space-y-4 p-4 bg-gray-50 rounded-lg border border-gray-100">
               <div className="flex gap-4">
                 <div className="flex-1 space-y-1">
-                  <FormLabel className="text-xs">Cantidad</FormLabel>
+                  <label className="text-xs font-medium">Cantidad</label>
                   <Input type="number" {...codeForm.register("quantity")} min={1} max={50} />
                 </div>
                 <div className="flex-1 space-y-1">
-                  <FormLabel className="text-xs">Tipo</FormLabel>
+                  <label className="text-xs font-medium">Tipo</label>
                   <Select defaultValue="standard" onValueChange={(v) => codeForm.setValue("type", v as any)}>
                     <SelectTrigger><SelectValue/></SelectTrigger>
                     <SelectContent>
