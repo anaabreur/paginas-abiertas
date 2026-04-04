@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "Páginas Abiertas"
+version = "1.0.0"
+id = "artifacts/paginas-abiertas"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 18970
+
+[services.development]
+run = "pnpm --filter @workspace/paginas-abiertas run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/paginas-abiertas", "run", "build" ]
+publicDir = "artifacts/paginas-abiertas/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "18970"
+BASE_PATH = "/"

@@ -3,13 +3,22 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: API specification for Páginas Abiertas book club portal
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: voting
+    description: Voting session and vote management
+  - name: leaderboard
+    description: Member leaderboard and rankings
+  - name: currentBook
+    description: Current book being read by the club
+  - name: admin
+    description: Admin panel operations
+
 paths:
   /healthz:
     get:
@@ -24,6 +33,322 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  # ─── VOTING ───────────────────────────────────────────────────────
+  /voting/session:
+    get:
+      operationId: getVotingSession
+      tags: [voting]
+      summary: Get the current voting session
+      responses:
+        "200":
+          description: Current voting session or null if none active
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VotingSessionResponse"
+
+  /voting/books:
+    get:
+      operationId: getVotingBooks
+      tags: [voting]
+      summary: Get all candidate books for current session
+      responses:
+        "200":
+          description: List of candidate books with vote counts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CandidateBook"
+
+  /voting/vote:
+    post:
+      operationId: castVote
+      tags: [voting]
+      summary: Cast a vote using a code
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CastVoteBody"
+      responses:
+        "200":
+          description: Vote cast successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoteResult"
+        "400":
+          description: Invalid or used code
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # ─── LEADERBOARD ──────────────────────────────────────────────────
+  /leaderboard:
+    get:
+      operationId: getLeaderboard
+      tags: [leaderboard]
+      summary: Get the full member leaderboard sorted by points
+      responses:
+        "200":
+          description: Ranked list of members
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LeaderboardMember"
+
+  # ─── CURRENT BOOK ─────────────────────────────────────────────────
+  /current-book:
+    get:
+      operationId: getCurrentBook
+      tags: [currentBook]
+      summary: Get the current book being read
+      responses:
+        "200":
+          description: Current book info or null if none
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CurrentBookResponse"
+
+  # ─── ADMIN ────────────────────────────────────────────────────────
+  /admin/verify:
+    post:
+      operationId: verifyAdminPassword
+      tags: [admin]
+      summary: Verify admin password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminVerifyBody"
+      responses:
+        "200":
+          description: Password verified
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminVerifyResponse"
+        "401":
+          description: Wrong password
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /admin/voting/session:
+    post:
+      operationId: createVotingSession
+      tags: [admin]
+      summary: Create a new voting session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateVotingSessionBody"
+      responses:
+        "200":
+          description: Session created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VotingSession"
+
+  /admin/voting/session/{id}/close:
+    post:
+      operationId: closeVotingSession
+      tags: [admin]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      summary: Close a voting session
+      responses:
+        "200":
+          description: Session closed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VotingSession"
+
+  /admin/voting/session/{id}/open:
+    post:
+      operationId: openVotingSession
+      tags: [admin]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      summary: Open a voting session
+      responses:
+        "200":
+          description: Session opened
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VotingSession"
+
+  /admin/voting/books:
+    post:
+      operationId: addCandidateBook
+      tags: [admin]
+      summary: Add a candidate book to the current session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddBookBody"
+      responses:
+        "200":
+          description: Book added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CandidateBook"
+
+  /admin/voting/codes:
+    post:
+      operationId: generateVotingCodes
+      tags: [admin]
+      summary: Generate voting codes for current session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GenerateCodesBody"
+      responses:
+        "200":
+          description: Codes generated
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/VotingCode"
+    get:
+      operationId: getVotingCodes
+      tags: [admin]
+      summary: Get all voting codes for current session
+      responses:
+        "200":
+          description: List of voting codes with status
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/VotingCode"
+
+  /admin/leaderboard:
+    get:
+      operationId: getAdminLeaderboard
+      tags: [admin]
+      summary: Get full leaderboard for admin (including archived)
+      responses:
+        "200":
+          description: All members
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LeaderboardMember"
+    post:
+      operationId: addMember
+      tags: [admin]
+      summary: Add a new member to the leaderboard
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddMemberBody"
+      responses:
+        "200":
+          description: Member added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LeaderboardMember"
+
+  /admin/leaderboard/{id}:
+    put:
+      operationId: updateMember
+      tags: [admin]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      summary: Update member points, alias or avatar
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateMemberBody"
+      responses:
+        "200":
+          description: Member updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LeaderboardMember"
+
+  /admin/leaderboard/{id}/archive:
+    post:
+      operationId: archiveMember
+      tags: [admin]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      summary: Archive (hide) a member from the public leaderboard
+      responses:
+        "200":
+          description: Member archived
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LeaderboardMember"
+
+  /admin/current-book:
+    put:
+      operationId: updateCurrentBook
+      tags: [admin]
+      summary: Update or set the current book
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateCurrentBookBody"
+      responses:
+        "200":
+          description: Current book updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CurrentBook"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +359,322 @@ components:
       required:
         - status
 
+    ErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+      required:
+        - message
+
+    VotingSession:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        status:
+          type: string
+          enum: [open, closed]
+        deadline:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+      required:
+        - id
+        - title
+        - status
+        - createdAt
+
+    VotingSessionResponse:
+      type: object
+      properties:
+        session:
+          $ref: "#/components/schemas/VotingSession"
+          nullable: true
+      required:
+        - session
+
+    CandidateBook:
+      type: object
+      properties:
+        id:
+          type: integer
+        sessionId:
+          type: integer
+        title:
+          type: string
+        author:
+          type: string
+        genre:
+          type: string
+        coverUrl:
+          type: string
+        synopsis:
+          type: string
+        votes:
+          type: integer
+        isWinner:
+          type: boolean
+      required:
+        - id
+        - sessionId
+        - title
+        - author
+        - genre
+        - coverUrl
+        - synopsis
+        - votes
+        - isWinner
+
+    CastVoteBody:
+      type: object
+      properties:
+        code:
+          type: string
+        bookId:
+          type: integer
+        secondBookId:
+          type: integer
+          nullable: true
+      required:
+        - code
+        - bookId
+
+    VoteResult:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        votesUsed:
+          type: integer
+      required:
+        - success
+        - message
+        - votesUsed
+
+    VotingCode:
+      type: object
+      properties:
+        id:
+          type: integer
+        sessionId:
+          type: integer
+        code:
+          type: string
+        type:
+          type: string
+          enum: [standard, premium]
+        used:
+          type: boolean
+        usedAt:
+          type: string
+          nullable: true
+      required:
+        - id
+        - sessionId
+        - code
+        - type
+        - used
+
+    LeaderboardMember:
+      type: object
+      properties:
+        id:
+          type: integer
+        alias:
+          type: string
+        avatar:
+          type: string
+        points:
+          type: integer
+        rank:
+          type: string
+          enum: [Novata, Viajera, Aventurera, Embajadora, "Leyenda Literaria"]
+        position:
+          type: integer
+        archived:
+          type: boolean
+      required:
+        - id
+        - alias
+        - avatar
+        - points
+        - rank
+        - position
+        - archived
+
+    CurrentBook:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        author:
+          type: string
+        genre:
+          type: string
+        coverUrl:
+          type: string
+        synopsis:
+          type: string
+        currentWeek:
+          type: integer
+        totalWeeks:
+          type: integer
+        nextSessionDate:
+          type: string
+        nextSessionDescription:
+          type: string
+        weekActivity:
+          type: string
+        motivationalPhrase:
+          type: string
+      required:
+        - id
+        - title
+        - author
+        - genre
+        - coverUrl
+        - synopsis
+        - currentWeek
+        - totalWeeks
+        - nextSessionDate
+        - nextSessionDescription
+        - weekActivity
+        - motivationalPhrase
+
+    CurrentBookResponse:
+      type: object
+      properties:
+        book:
+          $ref: "#/components/schemas/CurrentBook"
+          nullable: true
+      required:
+        - book
+
+    CreateVotingSessionBody:
+      type: object
+      properties:
+        title:
+          type: string
+        deadline:
+          type: string
+          nullable: true
+      required:
+        - title
+
+    AddBookBody:
+      type: object
+      properties:
+        title:
+          type: string
+        author:
+          type: string
+        genre:
+          type: string
+        coverUrl:
+          type: string
+        synopsis:
+          type: string
+      required:
+        - title
+        - author
+        - genre
+        - coverUrl
+        - synopsis
+
+    GenerateCodesBody:
+      type: object
+      properties:
+        quantity:
+          type: integer
+        type:
+          type: string
+          enum: [standard, premium]
+      required:
+        - quantity
+        - type
+
+    AddMemberBody:
+      type: object
+      properties:
+        alias:
+          type: string
+        avatar:
+          type: string
+        points:
+          type: integer
+      required:
+        - alias
+        - avatar
+        - points
+
+    UpdateMemberBody:
+      type: object
+      properties:
+        alias:
+          type: string
+        avatar:
+          type: string
+        points:
+          type: integer
+
+    AdminVerifyBody:
+      type: object
+      properties:
+        password:
+          type: string
+      required:
+        - password
+
+    AdminVerifyResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+      required:
+        - success
+
+    UpdateCurrentBookBody:
+      type: object
+      properties:
+        title:
+          type: string
+        author:
+          type: string
+        genre:
+          type: string
+        coverUrl:
+          type: string
+        synopsis:
+          type: string
+        currentWeek:
+          type: integer
+        totalWeeks:
+          type: integer
+        nextSessionDate:
+          type: string
+        nextSessionDescription:
+          type: string
+        weekActivity:
+          type: string
+        motivationalPhrase:
+          type: string
+      required:
+        - title
+        - author
+        - genre
+        - coverUrl
+        - synopsis
+        - currentWeek
+        - totalWeeks
+        - nextSessionDate
+        - nextSessionDescription
+        - weekActivity
+        - motivationalPhrase
