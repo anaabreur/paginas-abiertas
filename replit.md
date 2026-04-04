@@ -25,7 +25,7 @@ The public landing page for Páginas Abiertas book club. Single-page scroll with
 - **El Club** — club description and feature cards
 - **7 Países Literarios** — genre cards styled as passport stamps
 - **Votación** — interactive voting with code validation and confetti celebration
-- **Exploradoras** — leaderboard with identity modal (alias + avatar via localStorage)
+- **Exploradoras** — leaderboard with identity modal (alias + one of 8 custom SVG character avatars stored by id in localStorage)
 - **En Ruta Ahora** — current book being read by the club
 - **Footer** with quick links and social icons
 - **Admin panel** at `/admin` (password: `paginas2026`) — manage voting sessions, leaderboard, current book

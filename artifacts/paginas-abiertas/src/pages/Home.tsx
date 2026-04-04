@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { CLUB_AVATARS, ClubAvatar } from "@/components/Avatars";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
@@ -482,10 +482,9 @@ function LeaderboardSection() {
             {/* Rank 2 - Silver */}
             {top3[1] && (
               <motion.div initial={{ y: 50, opacity: 0 }} whileInView={{ y: 0, opacity: 1 }} viewport={{ once: true }} className="w-full md:w-48 flex flex-col items-center order-2 md:order-1">
-                <Avatar className="h-20 w-20 border-4 border-gray-300 mb-4 shadow-xl">
-                  <AvatarImage src={top3[1].avatar} />
-                  <AvatarFallback>{top3[1].alias.substring(0, 2)}</AvatarFallback>
-                </Avatar>
+                <div className="mb-4 shadow-xl border-4 border-gray-300 rounded-full overflow-hidden">
+                  <ClubAvatar avatarId={top3[1].avatar} size={80} />
+                </div>
                 <div className="bg-gradient-to-t from-gray-300 to-gray-100 w-full h-32 rounded-t-xl flex flex-col items-center pt-4 shadow-lg border border-gray-300">
                   <span className="font-bold text-2xl text-gray-500">#2</span>
                   <span className="font-display font-bold text-[#0F1F3D] text-lg truncate w-full text-center px-2">{top3[1].alias}</span>
@@ -499,10 +498,9 @@ function LeaderboardSection() {
               <motion.div initial={{ y: 50, opacity: 0 }} whileInView={{ y: 0, opacity: 1 }} viewport={{ once: true }} transition={{ delay: 0.2 }} className="w-full md:w-56 flex flex-col items-center order-1 md:order-2 z-10">
                 <div className="relative mb-4">
                   <div className="absolute -inset-4 bg-[#F5E642]/30 blur-xl rounded-full"></div>
-                  <Avatar className="h-28 w-28 border-4 border-[#F5E642] relative shadow-[0_0_20px_rgba(245,230,66,0.5)]">
-                    <AvatarImage src={top3[0].avatar} />
-                    <AvatarFallback>{top3[0].alias.substring(0, 2)}</AvatarFallback>
-                  </Avatar>
+                  <div className="relative border-4 border-[#F5E642] rounded-full overflow-hidden shadow-[0_0_20px_rgba(245,230,66,0.5)]">
+                    <ClubAvatar avatarId={top3[0].avatar} size={112} />
+                  </div>
                   <div className="absolute -top-4 -right-2 text-4xl">👑</div>
                 </div>
                 <div className="bg-gradient-to-t from-[#D4C41B] to-[#F5E642] w-full h-40 rounded-t-xl flex flex-col items-center pt-4 shadow-2xl border border-[#F5E642]">
@@ -516,10 +514,9 @@ function LeaderboardSection() {
             {/* Rank 3 - Bronze */}
             {top3[2] && (
               <motion.div initial={{ y: 50, opacity: 0 }} whileInView={{ y: 0, opacity: 1 }} viewport={{ once: true }} transition={{ delay: 0.1 }} className="w-full md:w-48 flex flex-col items-center order-3 md:order-3">
-                <Avatar className="h-20 w-20 border-4 border-amber-600 mb-4 shadow-xl">
-                  <AvatarImage src={top3[2].avatar} />
-                  <AvatarFallback>{top3[2].alias.substring(0, 2)}</AvatarFallback>
-                </Avatar>
+                <div className="mb-4 shadow-xl border-4 border-amber-600 rounded-full overflow-hidden">
+                  <ClubAvatar avatarId={top3[2].avatar} size={80} />
+                </div>
                 <div className="bg-gradient-to-t from-amber-700 to-amber-500 w-full h-24 rounded-t-xl flex flex-col items-center pt-4 shadow-lg border border-amber-600 text-amber-50">
                   <span className="font-bold text-2xl">#3</span>
                   <span className="font-display font-bold text-white text-lg truncate w-full text-center px-2">{top3[2].alias}</span>
@@ -542,10 +539,9 @@ function LeaderboardSection() {
               className="flex items-center p-4 border-b border-gray-50 hover:bg-gray-50 transition-colors"
             >
               <div className="w-12 text-center font-bold text-gray-400">#{member.position}</div>
-              <Avatar className="h-10 w-10 mr-4">
-                <AvatarImage src={member.avatar} />
-                <AvatarFallback>{member.alias.substring(0, 2)}</AvatarFallback>
-              </Avatar>
+              <div className="mr-4">
+                <ClubAvatar avatarId={member.avatar} size={40} />
+              </div>
               <div className="flex-grow">
                 <div className="font-bold text-[#0F1F3D]">{member.alias}</div>
                 <div className="text-xs text-gray-500 block md:hidden">{member.points} pts</div>
@@ -572,62 +568,94 @@ function LeaderboardSection() {
 
 function IdentityModal({ open, onSave, onClose }: { open: boolean, onSave: (alias: string, avatar: string) => void, onClose: () => void }) {
   const [alias, setAlias] = useState("");
-  const [avatar, setAvatar] = useState("");
-
-  const avatars = [
-    "https://api.dicebear.com/7.x/adventurer/svg?seed=Felix&backgroundColor=b6e3f4",
-    "https://api.dicebear.com/7.x/adventurer/svg?seed=Aneka&backgroundColor=ffdfbf",
-    "https://api.dicebear.com/7.x/adventurer/svg?seed=Jude&backgroundColor=c0aede",
-    "https://api.dicebear.com/7.x/adventurer/svg?seed=Liliana&backgroundColor=ffd5dc",
-    "https://api.dicebear.com/7.x/adventurer/svg?seed=Leah&backgroundColor=b6e3f4",
-    "https://api.dicebear.com/7.x/adventurer/svg?seed=Chase&backgroundColor=ffdfbf"
-  ];
+  const [selectedId, setSelectedId] = useState("");
 
   return (
     <Dialog open={open} onOpenChange={(val) => !val && onClose()}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="font-display text-2xl text-[#0F1F3D]">Crea tu identidad de exploradora</DialogTitle>
+          <DialogTitle className="font-display text-2xl text-[#0F1F3D]">
+            Crea tu identidad de exploradora
+          </DialogTitle>
           <DialogDescription>
-            Elige un alias secreto y un avatar para aparecer en el Muro de Exploradoras.
+            Elige tu personaje y un alias secreto para aparecer en el Muro de Exploradoras.
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-6 pt-4">
+
+        <div className="space-y-6 pt-2">
+          {/* Alias input */}
           <div className="space-y-2">
-            <label className="text-sm font-semibold">Tu Alias Secreto</label>
-            <Input 
-              value={alias} 
-              onChange={(e) => setAlias(e.target.value)} 
-              placeholder="Ej: LectoraNocturna" 
+            <label className="text-sm font-semibold text-[#0F1F3D]">Tu Alias Secreto</label>
+            <Input
+              value={alias}
+              onChange={(e) => setAlias(e.target.value)}
+              placeholder="Ej: LectoraNocturna"
               maxLength={20}
+              className="border-2 focus:border-[#E8523A]"
             />
           </div>
-          <div className="space-y-2">
-            <label className="text-sm font-semibold">Elige tu Avatar</label>
-            <div className="grid grid-cols-3 gap-4">
-              {avatars.map(url => (
-                <button 
-                  key={url} 
-                  type="button"
-                  onClick={() => setAvatar(url)}
-                  className={`relative rounded-xl overflow-hidden border-4 transition-all ${avatar === url ? 'border-[#E8523A] scale-105' : 'border-transparent hover:border-gray-200'}`}
-                >
-                  <img src={url} alt="avatar" className="w-full h-auto" />
-                  {avatar === url && (
-                    <div className="absolute inset-0 bg-[#E8523A]/20 flex items-center justify-center">
-                      <Check className="text-white h-8 w-8 drop-shadow-md" />
+
+          {/* Avatar grid */}
+          <div className="space-y-3">
+            <label className="text-sm font-semibold text-[#0F1F3D]">Elige tu Personaje</label>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {CLUB_AVATARS.map((def) => {
+                const selected = selectedId === def.id;
+                return (
+                  <button
+                    key={def.id}
+                    type="button"
+                    onClick={() => setSelectedId(def.id)}
+                    className={`relative flex flex-col items-center gap-2 p-3 rounded-2xl border-2 transition-all duration-200 group
+                      ${selected
+                        ? "border-[#E8523A] bg-[#E8523A]/8 scale-[1.03] shadow-lg shadow-[#E8523A]/20"
+                        : "border-gray-200 hover:border-[#E8523A]/50 hover:scale-[1.02]"
+                      }`}
+                  >
+                    {/* Avatar circle */}
+                    <div
+                      className="rounded-full overflow-hidden shadow-md"
+                      style={{
+                        width: 72,
+                        height: 72,
+                        background: def.bg,
+                        outline: selected ? "3px solid #E8523A" : "3px solid transparent",
+                        outlineOffset: 2,
+                        transition: "outline 0.15s",
+                      }}
+                    >
+                      <div style={{ width: 72, height: 72 }}>{def.svg}</div>
                     </div>
-                  )}
-                </button>
-              ))}
+
+                    {/* Name & role */}
+                    <div className="text-center leading-tight">
+                      <p
+                        className="text-xs font-bold"
+                        style={{ color: selected ? "#E8523A" : "#0F1F3D" }}
+                      >
+                        {def.name}
+                      </p>
+                      <p className="text-[10px] text-gray-500 font-medium">{def.role}</p>
+                    </div>
+
+                    {/* Selected check */}
+                    {selected && (
+                      <div className="absolute top-2 right-2 bg-[#E8523A] rounded-full w-5 h-5 flex items-center justify-center shadow">
+                        <Check className="text-white h-3 w-3" strokeWidth={3} />
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
             </div>
           </div>
-          <Button 
-            className="w-full bg-[#E8523A] hover:bg-[#E8523A]/90 text-white font-bold"
-            disabled={!alias || !avatar}
-            onClick={() => onSave(alias, avatar)}
+
+          <Button
+            className="w-full bg-[#E8523A] hover:bg-[#E8523A]/90 text-white font-bold py-3 text-base"
+            disabled={!alias.trim() || !selectedId}
+            onClick={() => onSave(alias.trim(), selectedId)}
           >
-            Guardar Identidad
+            ¡Listo, soy exploradora!
           </Button>
         </div>
       </DialogContent>
