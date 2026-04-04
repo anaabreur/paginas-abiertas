@@ -465,6 +465,7 @@ export const UpdateCandidateBookBody = zod.object({
   genre: zod.string().optional(),
   coverUrl: zod.string().optional(),
   synopsis: zod.string().optional(),
+  isWinner: zod.boolean().optional(),
 });
 
 export const UpdateCandidateBookResponse = zod.object({

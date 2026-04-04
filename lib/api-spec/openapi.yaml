@@ -907,6 +907,8 @@ components:
           type: string
         synopsis:
           type: string
+        isWinner:
+          type: boolean
 
     UpdateSessionBody:
       type: object

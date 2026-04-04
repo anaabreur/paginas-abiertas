@@ -176,12 +176,13 @@ router.post("/admin/voting/books", async (req, res): Promise<void> => {
 router.put("/admin/voting/books/:id", async (req, res): Promise<void> => {
   const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const id = parseInt(raw, 10);
-  const { title, author, genre, coverUrl, synopsis } = req.body as Partial<{
+  const { title, author, genre, coverUrl, synopsis, isWinner } = req.body as Partial<{
     title: string;
     author: string;
     genre: string;
     coverUrl: string;
     synopsis: string;
+    isWinner: boolean;
   }>;
 
   const data: Record<string, unknown> = {};
@@ -190,6 +191,7 @@ router.put("/admin/voting/books/:id", async (req, res): Promise<void> => {
   if (genre !== undefined) data.genre = genre;
   if (coverUrl !== undefined) data.coverUrl = coverUrl;
   if (synopsis !== undefined) data.synopsis = synopsis;
+  if (isWinner !== undefined) data.isWinner = isWinner;
 
   const [updated] = await db
     .update(candidateBooksTable)

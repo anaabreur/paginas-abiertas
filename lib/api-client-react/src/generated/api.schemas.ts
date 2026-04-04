@@ -133,6 +133,7 @@ export interface UpdateBookBody {
   genre?: string;
   coverUrl?: string;
   synopsis?: string;
+  isWinner?: boolean;
 }
 
 export interface UpdateSessionBody {

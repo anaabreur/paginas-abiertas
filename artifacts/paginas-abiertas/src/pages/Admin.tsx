@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { BookOpen, Globe, Users, Vote, Plus, Trash2, KeyRound, Pencil, Check, X, ChevronDown, ChevronUp, Camera, Image } from "lucide-react";
+import { BookOpen, Globe, Users, Vote, Plus, Trash2, KeyRound, Pencil, Check, X, ChevronDown, ChevronUp, Camera, Image, Trophy } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -247,6 +247,15 @@ function VotingAdminTab() {
     });
   };
 
+  const handleToggleWinner = (book: { id: number; isWinner: boolean }) => {
+    updateBook.mutate({ id: book.id, data: { isWinner: !book.isWinner } }, {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: getGetVotingBooksQueryKey() });
+        toast({ title: "Éxito", description: book.isWinner ? "Ganador removido" : "¡Libro marcado como ganador!" });
+      }
+    });
+  };
+
   const handleDeleteBook = (bookId: number) => {
     if (!confirm("¿Eliminar este libro?")) return;
     deleteBook.mutate({ id: bookId }, {
@@ -403,7 +412,15 @@ function VotingAdminTab() {
                     <TableCell className="text-right space-x-2">
                       <Button size="sm" variant="ghost" onClick={() => openEditDialog(book)} className="[&:hover_svg]:!text-[#1A1A1A]"><Pencil className="w-4 h-4 !text-[#6B7280]"/></Button>
                       <Button size="sm" variant="ghost" onClick={() => handleDeleteBook(book.id)}><Trash2 className="w-4 h-4 text-red-500"/></Button>
-                      {book.isWinner && <Badge className="bg-yellow-500 ml-2">Ganador</Badge>}
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        title={book.isWinner ? "Quitar ganador" : "Marcar como ganador"}
+                        onClick={() => handleToggleWinner(book)}
+                        className={book.isWinner ? "[&:hover_svg]:!text-yellow-400" : "[&:hover_svg]:!text-yellow-500"}
+                      >
+                        <Trophy className={`w-4 h-4 ${book.isWinner ? "!text-yellow-500" : "!text-[#6B7280]"}`} />
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}
