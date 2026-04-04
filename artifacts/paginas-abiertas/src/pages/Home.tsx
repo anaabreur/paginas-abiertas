@@ -59,7 +59,7 @@ function Navbar() {
           <button onClick={() => scrollTo("votacion")} className="hover:text-[#4DC8E0] transition-colors">Votación</button>
           <button onClick={() => scrollTo("exploradoras")} className="hover:text-[#4DC8E0] transition-colors">Exploradoras</button>
           <Button onClick={() => scrollTo("votacion")} className="bg-[#E8523A] hover:bg-[#E8523A]/90 text-white font-bold ml-4">
-            ¿Cómo unirme?
+            ¿Qué leeremos?
           </Button>
         </div>
 
@@ -85,7 +85,7 @@ function Navbar() {
               <button onClick={() => scrollTo("votacion")} className="text-left font-medium">Votación</button>
               <button onClick={() => scrollTo("exploradoras")} className="text-left font-medium">Exploradoras</button>
               <Button onClick={() => scrollTo("votacion")} className="bg-[#E8523A] text-white font-bold mt-2">
-                ¿Cómo unirme?
+                ¿Qué leeremos?
               </Button>
             </div>
           </motion.div>
