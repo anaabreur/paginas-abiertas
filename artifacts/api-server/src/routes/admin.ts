@@ -247,6 +247,23 @@ router.get("/admin/voting/codes", async (req, res): Promise<void> => {
   );
 });
 
+router.delete("/admin/voting/codes/:id", async (req, res): Promise<void> => {
+  const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const id = parseInt(raw, 10);
+
+  const [deleted] = await db
+    .delete(votingCodesTable)
+    .where(eq(votingCodesTable.id, id))
+    .returning();
+
+  if (!deleted) {
+    res.status(404).json({ message: "Código no encontrado" });
+    return;
+  }
+
+  res.json({ success: true });
+});
+
 router.post("/admin/voting/codes", async (req, res): Promise<void> => {
   const { quantity, type } = req.body as { quantity: number; type: "standard" | "premium" };
 

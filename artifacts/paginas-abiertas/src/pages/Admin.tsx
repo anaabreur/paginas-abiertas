@@ -33,6 +33,7 @@ import {
   useDeleteCandidateBook,
   useGenerateVotingCodes,
   useGetVotingCodes,
+  useDeleteVotingCode,
   useGetAdminLeaderboard,
   useAddMember,
   useUpdateMember,
@@ -165,6 +166,7 @@ function VotingAdminTab() {
   const updateBook = useUpdateCandidateBook();
   const deleteBook = useDeleteCandidateBook();
   const generateCodes = useGenerateVotingCodes();
+  const deleteCode = useDeleteVotingCode();
 
   const [isNewSessionOpen, setIsNewSessionOpen] = useState(false);
   const [isAddBookOpen, setIsAddBookOpen] = useState(false);
@@ -277,6 +279,15 @@ function VotingAdminTab() {
       synopsis: book.synopsis
     });
     setIsEditBookOpen(true);
+  };
+
+  const handleDeleteCode = (id: number) => {
+    deleteCode.mutate({ id }, {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: getGetVotingCodesQueryKey() });
+        toast({ title: "Código eliminado" });
+      }
+    });
   };
 
   const handleGenerateCodes = (values: any) => {
@@ -473,9 +484,20 @@ function VotingAdminTab() {
                 {codes?.map(code => (
                   <div key={code.id} className={`flex items-center justify-between p-2 rounded text-sm font-mono border ${code.used ? 'bg-gray-50 text-gray-400 border-gray-100 line-through' : 'bg-white border-gray-200'}`}>
                     <span>{code.code}</span>
-                    <Badge variant={code.type === 'premium' ? 'default' : 'secondary'} className="text-[10px] px-1 py-0 h-4">
-                      {code.type}
-                    </Badge>
+                    <div className="flex items-center gap-2">
+                      <Badge variant={code.type === 'premium' ? 'default' : 'secondary'} className="text-[10px] px-1 py-0 h-4">
+                        {code.type}
+                      </Badge>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => handleDeleteCode(code.id)}
+                        className="h-6 w-6 p-0 text-gray-300 hover:text-red-500 hover:bg-red-50"
+                        title="Eliminar código"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </div>

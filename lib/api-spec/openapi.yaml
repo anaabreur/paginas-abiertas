@@ -559,6 +559,28 @@ paths:
                 items:
                   $ref: "#/components/schemas/VotingCode"
 
+  /admin/voting/codes/{id}:
+    delete:
+      operationId: deleteVotingCode
+      tags: [admin]
+      summary: Delete a voting code
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Code deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+
   /admin/leaderboard:
     get:
       operationId: getAdminLeaderboard

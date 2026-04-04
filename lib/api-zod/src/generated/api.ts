@@ -525,6 +525,17 @@ export const GetVotingCodesResponseItem = zod.object({
 export const GetVotingCodesResponse = zod.array(GetVotingCodesResponseItem);
 
 /**
+ * @summary Delete a voting code
+ */
+export const DeleteVotingCodeParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const DeleteVotingCodeResponse = zod.object({
+  success: zod.boolean().optional(),
+});
+
+/**
  * @summary Get full leaderboard for admin (including archived)
  */
 export const GetAdminLeaderboardResponseItem = zod.object({

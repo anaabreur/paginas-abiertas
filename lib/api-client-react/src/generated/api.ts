@@ -30,6 +30,7 @@ import type {
   CurrentBook,
   CurrentBookResponse,
   DeleteMember200,
+  DeleteVotingCode200,
   ErrorResponse,
   Expedition,
   GalleryPhoto,
@@ -2306,6 +2307,90 @@ export function useGetVotingCodes<
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
+
+/**
+ * @summary Delete a voting code
+ */
+export const getDeleteVotingCodeUrl = (id: number) => {
+  return `/api/admin/voting/codes/${id}`;
+};
+
+export const deleteVotingCode = async (
+  id: number,
+  options?: RequestInit,
+): Promise<DeleteVotingCode200> => {
+  return customFetch<DeleteVotingCode200>(getDeleteVotingCodeUrl(id), {
+    ...options,
+    method: "DELETE",
+  });
+};
+
+export const getDeleteVotingCodeMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteVotingCode>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteVotingCode>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  const mutationKey = ["deleteVotingCode"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteVotingCode>>,
+    { id: number }
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return deleteVotingCode(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteVotingCodeMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteVotingCode>>
+>;
+
+export type DeleteVotingCodeMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Delete a voting code
+ */
+export const useDeleteVotingCode = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteVotingCode>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof deleteVotingCode>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  return useMutation(getDeleteVotingCodeMutationOptions(options));
+};
 
 /**
  * @summary Get full leaderboard for admin (including archived)

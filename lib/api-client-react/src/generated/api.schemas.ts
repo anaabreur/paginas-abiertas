@@ -272,6 +272,10 @@ export interface SuccessResponse {
   success: boolean;
 }
 
+export type DeleteVotingCode200 = {
+  success?: boolean;
+};
+
 export type DeleteMember200 = {
   success?: boolean;
 };
