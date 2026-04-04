@@ -112,6 +112,29 @@ router.post("/admin/voting/session/:id/open", async (req, res): Promise<void> =>
   });
 });
 
+router.put("/admin/voting/session/:id", async (req, res): Promise<void> => {
+  const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const id = parseInt(raw, 10);
+  const { deadline } = req.body as { deadline?: string | null };
+
+  const [updated] = await db
+    .update(votingSessionsTable)
+    .set({ deadline: deadline ? new Date(deadline) : null })
+    .where(eq(votingSessionsTable.id, id))
+    .returning();
+
+  if (!updated) {
+    res.status(404).json({ message: "Sesión no encontrada" });
+    return;
+  }
+
+  res.json({
+    ...updated,
+    deadline: updated.deadline?.toISOString() ?? null,
+    createdAt: updated.createdAt.toISOString(),
+  });
+});
+
 router.post("/admin/voting/books", async (req, res): Promise<void> => {
   const { title, author, genre, coverUrl, synopsis } = req.body as {
     title: string;

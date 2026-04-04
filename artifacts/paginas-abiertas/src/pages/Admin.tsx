@@ -26,6 +26,7 @@ import {
   useCreateVotingSession,
   useCloseVotingSession,
   useOpenVotingSession,
+  useUpdateVotingSession,
   useGetVotingBooks,
   useAddCandidateBook,
   useUpdateCandidateBook,
@@ -158,6 +159,7 @@ function VotingAdminTab() {
   const createSession = useCreateVotingSession();
   const closeSession = useCloseVotingSession();
   const openSession = useOpenVotingSession();
+  const updateSession = useUpdateVotingSession();
   const addBook = useAddCandidateBook();
   const updateBook = useUpdateCandidateBook();
   const deleteBook = useDeleteCandidateBook();
@@ -166,7 +168,9 @@ function VotingAdminTab() {
   const [isNewSessionOpen, setIsNewSessionOpen] = useState(false);
   const [isAddBookOpen, setIsAddBookOpen] = useState(false);
   const [isEditBookOpen, setIsEditBookOpen] = useState(false);
+  const [isEditDeadlineOpen, setIsEditDeadlineOpen] = useState(false);
   const [editingBookId, setEditingBookId] = useState<number | null>(null);
+  const [editDeadline, setEditDeadline] = useState("");
 
   const sessionForm = useForm({ defaultValues: { title: "", deadline: "" } });
   const bookForm = useForm({ defaultValues: { title: "", author: "", genre: "", coverUrl: "", synopsis: "" } });
@@ -195,6 +199,28 @@ function VotingAdminTab() {
         onSuccess: () => queryClient.invalidateQueries({ queryKey: getGetVotingSessionQueryKey() })
       });
     }
+  };
+
+  const handleUpdateDeadline = () => {
+    if (!session) return;
+    updateSession.mutate({ id: session.id, data: { deadline: editDeadline || null } }, {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: getGetVotingSessionQueryKey() });
+        setIsEditDeadlineOpen(false);
+        setEditDeadline("");
+        toast({ title: "Éxito", description: "Fecha de cierre actualizada" });
+      }
+    });
+  };
+
+  const openEditDeadlineDialog = () => {
+    if (session?.deadline) {
+      const d = new Date(session.deadline);
+      setEditDeadline(d.toISOString().split('T')[0]);
+    } else {
+      setEditDeadline("");
+    }
+    setIsEditDeadlineOpen(true);
   };
 
   const handleAddBook = (values: any) => {
@@ -287,14 +313,24 @@ function VotingAdminTab() {
           <CardContent className="pt-6">
             {session ? (
               <div className="flex items-center justify-between">
-                <div>
+                <div className="flex-1">
                   <h3 className="font-bold text-xl">{session.title}</h3>
                   <p className="text-sm text-gray-500">
                     Creada: {format(new Date(session.createdAt), "dd/MM/yyyy")} 
                     {session.deadline && ` • Cierra: ${format(new Date(session.deadline), "dd/MM/yyyy")}`}
                   </p>
                 </div>
-                <div className="flex items-center gap-3">
+                <Button size="sm" variant="ghost" onClick={openEditDeadlineDialog}><Pencil className="w-4 h-4"/></Button>
+                <Dialog open={isEditDeadlineOpen} onOpenChange={setIsEditDeadlineOpen}>
+                  <DialogContent>
+                    <DialogHeader><DialogTitle>Editar Fecha de Cierre</DialogTitle></DialogHeader>
+                    <div className="space-y-4">
+                      <Input type="date" value={editDeadline} onChange={(e) => setEditDeadline(e.target.value)} />
+                      <Button onClick={handleUpdateDeadline} className="w-full" disabled={updateSession.isPending}>Guardar</Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+                <div className="flex items-center gap-3 ml-4">
                   <span className="text-sm font-medium">{session.status === 'open' ? 'Abierta' : 'Cerrada'}</span>
                   <Switch 
                     checked={session.status === 'open'} 

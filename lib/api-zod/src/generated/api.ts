@@ -411,6 +411,25 @@ export const OpenVotingSessionResponse = zod.object({
 });
 
 /**
+ * @summary Update a voting session (deadline)
+ */
+export const UpdateVotingSessionParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const UpdateVotingSessionBody = zod.object({
+  deadline: zod.coerce.date().nullish(),
+});
+
+export const UpdateVotingSessionResponse = zod.object({
+  id: zod.number(),
+  title: zod.string(),
+  status: zod.enum(["open", "closed"]),
+  deadline: zod.string().nullish(),
+  createdAt: zod.string(),
+});
+
+/**
  * @summary Add a candidate book to the current session
  */
 export const AddCandidateBookBody = zod.object({

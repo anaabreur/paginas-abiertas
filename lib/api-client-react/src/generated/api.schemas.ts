@@ -135,6 +135,10 @@ export interface UpdateBookBody {
   synopsis?: string;
 }
 
+export interface UpdateSessionBody {
+  deadline?: string | null;
+}
+
 export type GenerateCodesBodyType =
   (typeof GenerateCodesBodyType)[keyof typeof GenerateCodesBodyType];
 

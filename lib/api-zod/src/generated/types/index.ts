@@ -34,6 +34,7 @@ export * from "./updateCurrentBookBody";
 export * from "./updateExpeditionBody";
 export * from "./updateLiteraryCountryBody";
 export * from "./updateMemberBody";
+export * from "./updateSessionBody";
 export * from "./voteResult";
 export * from "./votingCode";
 export * from "./votingCodeType";

@@ -42,6 +42,7 @@ import type {
   UpdateExpeditionBody,
   UpdateLiteraryCountryBody,
   UpdateMemberBody,
+  UpdateSessionBody,
   VoteResult,
   VotingCode,
   VotingSession,
@@ -1798,6 +1799,93 @@ export const useOpenVotingSession = <
   TContext
 > => {
   return useMutation(getOpenVotingSessionMutationOptions(options));
+};
+
+/**
+ * @summary Update a voting session (deadline)
+ */
+export const getUpdateVotingSessionUrl = (id: number) => {
+  return `/api/admin/voting/session/${id}`;
+};
+
+export const updateVotingSession = async (
+  id: number,
+  updateSessionBody: UpdateSessionBody,
+  options?: RequestInit,
+): Promise<VotingSession> => {
+  return customFetch<VotingSession>(getUpdateVotingSessionUrl(id), {
+    ...options,
+    method: "PUT",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(updateSessionBody),
+  });
+};
+
+export const getUpdateVotingSessionMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateVotingSession>>,
+    TError,
+    { id: number; data: BodyType<UpdateSessionBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateVotingSession>>,
+  TError,
+  { id: number; data: BodyType<UpdateSessionBody> },
+  TContext
+> => {
+  const mutationKey = ["updateVotingSession"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateVotingSession>>,
+    { id: number; data: BodyType<UpdateSessionBody> }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return updateVotingSession(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateVotingSessionMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateVotingSession>>
+>;
+export type UpdateVotingSessionMutationBody = BodyType<UpdateSessionBody>;
+export type UpdateVotingSessionMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Update a voting session (deadline)
+ */
+export const useUpdateVotingSession = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateVotingSession>>,
+    TError,
+    { id: number; data: BodyType<UpdateSessionBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateVotingSession>>,
+  TError,
+  { id: number; data: BodyType<UpdateSessionBody> },
+  TContext
+> => {
+  return useMutation(getUpdateVotingSessionMutationOptions(options));
 };
 
 /**

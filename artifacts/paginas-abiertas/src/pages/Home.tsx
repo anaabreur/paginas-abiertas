@@ -131,9 +131,8 @@ function HeroSection() {
               Ver la votación
             </Button>
             <Button 
-              variant="outline" 
               size="lg" 
-              className="border-white/20 text-black hover:bg-white/10 font-bold text-lg h-14 px-8 rounded-full"
+              className="bg-transparent border-2 border-white text-white hover:bg-white/10 font-bold text-lg h-14 px-8 rounded-full"
               onClick={() => document.getElementById("club")?.scrollIntoView({ behavior: "smooth" })}
             >
               Conocer el club
