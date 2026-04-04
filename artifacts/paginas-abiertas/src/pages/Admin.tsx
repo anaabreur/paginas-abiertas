@@ -401,7 +401,7 @@ function VotingAdminTab() {
                     </TableCell>
                     <TableCell className="text-right font-mono font-bold text-lg">{book.votes}</TableCell>
                     <TableCell className="text-right space-x-2">
-                      <Button size="sm" variant="ghost" onClick={() => openEditDialog(book)} className="group"><Pencil className="w-4 h-4 group-hover:text-[#1A1A1A]" style={{ color: '#6B7280' }}/></Button>
+                      <Button size="sm" variant="ghost" onClick={() => openEditDialog(book)} className="[&:hover_svg]:!text-[#1A1A1A]"><Pencil className="w-4 h-4 !text-[#6B7280]"/></Button>
                       <Button size="sm" variant="ghost" onClick={() => handleDeleteBook(book.id)}><Trash2 className="w-4 h-4 text-red-500"/></Button>
                       {book.isWinner && <Badge className="bg-yellow-500 ml-2">Ganador</Badge>}
                     </TableCell>
