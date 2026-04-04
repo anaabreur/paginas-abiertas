@@ -22,6 +22,7 @@ import { Form, FormControl, FormField, FormItem, FormMessage } from "@/component
 import { useToast } from "@/hooks/use-toast";
 import {
   useGetVotingSession,
+  useGetLiteraryCountries,
   useGetVotingBooks,
   useGetCurrentBook,
   useGetLeaderboard,
@@ -226,15 +227,19 @@ function ClubSection() {
 }
 
 function GenresSection() {
-  const genres = [
-    { name: "Misterio", emoji: "🕵️‍♀️", desc: "Resuelve el caso antes de la última página", color: "#1E2D6B" },
-    { name: "Fantasía", emoji: "🐉", desc: "Magia, reinos perdidos y criaturas épicas", color: "#6B21A8" },
-    { name: "Romance", emoji: "💖", desc: "Amor verdadero y suspiros asegurados", color: "#DB2777" },
-    { name: "Sci-Fi", emoji: "🚀", desc: "Viajes en el tiempo y futuros distópicos", color: "#64748B" },
-    { name: "Terror", emoji: "👻", desc: "No leas esto con las luces apagadas", color: "#111111" },
-    { name: "Drama", emoji: "🎭", desc: "Lágrimas, emociones y vida real", color: "#B45309" },
-    { name: "Aventura", emoji: "🗺️", desc: "Mapas, tesoros y supervivencia", color: "#15803D" },
+  const { data: countries } = useGetLiteraryCountries();
+
+  const fallback = [
+    { id: 0, name: "Misterio", emoji: "🕵️‍♀️", description: "Resuelve el caso antes de la última página", color: "#1E2D6B", booksRead: 0, displayOrder: 1 },
+    { id: 0, name: "Fantasía", emoji: "🐉", description: "Magia, reinos perdidos y criaturas épicas", color: "#6B21A8", booksRead: 0, displayOrder: 2 },
+    { id: 0, name: "Romance", emoji: "💖", description: "Amor verdadero y suspiros asegurados", color: "#DB2777", booksRead: 0, displayOrder: 3 },
+    { id: 0, name: "Sci-Fi", emoji: "🚀", description: "Viajes en el tiempo y futuros distópicos", color: "#64748B", booksRead: 0, displayOrder: 4 },
+    { id: 0, name: "Terror", emoji: "👻", description: "No leas esto con las luces apagadas", color: "#111111", booksRead: 0, displayOrder: 5 },
+    { id: 0, name: "Drama", emoji: "🎭", description: "Lágrimas, emociones y vida real", color: "#B45309", booksRead: 0, displayOrder: 6 },
+    { id: 0, name: "Aventura", emoji: "🗺️", description: "Mapas, tesoros y supervivencia", color: "#15803D", booksRead: 0, displayOrder: 7 },
   ];
+
+  const genres = countries ?? fallback;
 
   return (
     <section id="paises" className="py-24 bg-gray-50 border-t border-b border-gray-200">
@@ -244,7 +249,7 @@ function GenresSection() {
         </h2>
         <div className="flex flex-wrap justify-center gap-6">
           {genres.map((g, i) => (
-            <motion.div 
+            <motion.div
               key={g.name}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -252,19 +257,23 @@ function GenresSection() {
               transition={{ delay: i * 0.1 }}
               className="w-full md:w-64 relative group cursor-pointer"
             >
-              <div 
+              <div
                 className="absolute inset-0 transform translate-x-2 translate-y-2 rounded-xl opacity-20 transition-transform group-hover:translate-x-3 group-hover:translate-y-3"
                 style={{ backgroundColor: g.color }}
               ></div>
-              <div 
+              <div
                 className="relative p-6 rounded-xl text-white overflow-hidden transform transition-transform group-hover:-translate-y-1 h-full shadow-lg"
                 style={{ backgroundColor: g.color }}
               >
-                {/* Stamp border effect */}
                 <div className="absolute inset-2 border border-white/20 rounded-lg pointer-events-none border-dashed"></div>
                 <div className="text-4xl mb-4">{g.emoji}</div>
                 <h3 className="font-display font-bold text-2xl mb-2">{g.name}</h3>
-                <p className="text-sm opacity-90">{g.desc}</p>
+                <p className="text-sm opacity-90 mb-3">{g.description}</p>
+                {g.booksRead > 0 && (
+                  <span className="inline-block text-xs font-semibold bg-white/20 rounded-full px-3 py-1">
+                    📚 {g.booksRead} {g.booksRead === 1 ? "libro leído" : "libros leídos"}
+                  </span>
+                )}
               </div>
             </motion.div>
           ))}

@@ -104,6 +104,49 @@ export const GetCurrentBookResponse = zod.object({
 });
 
 /**
+ * @summary Get all literary countries (genres)
+ */
+export const GetLiteraryCountriesResponseItem = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  emoji: zod.string(),
+  description: zod.string(),
+  color: zod.string(),
+  booksRead: zod.number(),
+  displayOrder: zod.number(),
+  updatedAt: zod.string(),
+});
+export const GetLiteraryCountriesResponse = zod.array(
+  GetLiteraryCountriesResponseItem,
+);
+
+/**
+ * @summary Update a literary country
+ */
+export const UpdateLiteraryCountryParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const UpdateLiteraryCountryBody = zod.object({
+  name: zod.string().optional(),
+  emoji: zod.string().optional(),
+  description: zod.string().optional(),
+  color: zod.string().optional(),
+  booksRead: zod.number().optional(),
+});
+
+export const UpdateLiteraryCountryResponse = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  emoji: zod.string(),
+  description: zod.string(),
+  color: zod.string(),
+  booksRead: zod.number(),
+  displayOrder: zod.number(),
+  updatedAt: zod.string(),
+});
+
+/**
  * @summary Verify admin password
  */
 export const VerifyAdminPasswordBody = zod.object({

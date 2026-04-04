@@ -173,3 +173,22 @@ export interface UpdateCurrentBookBody {
   weekActivity: string;
   motivationalPhrase: string;
 }
+
+export interface LiteraryCountry {
+  id: number;
+  name: string;
+  emoji: string;
+  description: string;
+  color: string;
+  booksRead: number;
+  displayOrder: number;
+  updatedAt: string;
+}
+
+export interface UpdateLiteraryCountryBody {
+  name?: string;
+  emoji?: string;
+  description?: string;
+  color?: string;
+  booksRead?: number;
+}

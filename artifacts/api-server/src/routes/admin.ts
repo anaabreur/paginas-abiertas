@@ -7,6 +7,7 @@ import {
   votingCodesTable,
   membersTable,
   currentBooksTable,
+  literaryCountriesTable,
 } from "@workspace/db";
 import { generateCode, getRank } from "../lib/nanoid";
 
@@ -403,6 +404,40 @@ router.put("/admin/current-book", async (req, res): Promise<void> => {
     createdAt: book.createdAt.toISOString(),
     updatedAt: book.updatedAt.toISOString(),
   });
+});
+
+router.put("/admin/literary-countries/:id", async (req, res): Promise<void> => {
+  const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const id = parseInt(raw, 10);
+
+  const { name, emoji, description, color, booksRead } = req.body as {
+    name?: string;
+    emoji?: string;
+    description?: string;
+    color?: string;
+    booksRead?: number;
+  };
+
+  const updateData: Partial<{ name: string; emoji: string; description: string; color: string; booksRead: number; updatedAt: Date }> = {};
+  if (name !== undefined) updateData.name = name;
+  if (emoji !== undefined) updateData.emoji = emoji;
+  if (description !== undefined) updateData.description = description;
+  if (color !== undefined) updateData.color = color;
+  if (booksRead !== undefined) updateData.booksRead = booksRead;
+  updateData.updatedAt = new Date();
+
+  const [updated] = await db
+    .update(literaryCountriesTable)
+    .set(updateData)
+    .where(eq(literaryCountriesTable.id, id))
+    .returning();
+
+  if (!updated) {
+    res.status(404).json({ message: "País literario no encontrado" });
+    return;
+  }
+
+  res.json({ ...updated, updatedAt: updated.updatedAt.toISOString() });
 });
 
 export default router;

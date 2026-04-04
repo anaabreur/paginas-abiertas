@@ -30,7 +30,9 @@ import type {
   GenerateCodesBody,
   HealthStatus,
   LeaderboardMember,
+  LiteraryCountry,
   UpdateCurrentBookBody,
+  UpdateLiteraryCountryBody,
   UpdateMemberBody,
   VoteResult,
   VotingCode,
@@ -508,6 +510,169 @@ export function useGetCurrentBook<
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
+
+/**
+ * @summary Get all literary countries (genres)
+ */
+export const getGetLiteraryCountriesUrl = () => {
+  return `/api/literary-countries`;
+};
+
+export const getLiteraryCountries = async (
+  options?: RequestInit,
+): Promise<LiteraryCountry[]> => {
+  return customFetch<LiteraryCountry[]>(getGetLiteraryCountriesUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetLiteraryCountriesQueryKey = () => {
+  return [`/api/literary-countries`] as const;
+};
+
+export const getGetLiteraryCountriesQueryOptions = <
+  TData = Awaited<ReturnType<typeof getLiteraryCountries>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getLiteraryCountries>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetLiteraryCountriesQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getLiteraryCountries>>
+  > = ({ signal }) => getLiteraryCountries({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getLiteraryCountries>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetLiteraryCountriesQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getLiteraryCountries>>
+>;
+export type GetLiteraryCountriesQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get all literary countries (genres)
+ */
+
+export function useGetLiteraryCountries<
+  TData = Awaited<ReturnType<typeof getLiteraryCountries>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getLiteraryCountries>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetLiteraryCountriesQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Update a literary country
+ */
+export const getUpdateLiteraryCountryUrl = (id: number) => {
+  return `/api/admin/literary-countries/${id}`;
+};
+
+export const updateLiteraryCountry = async (
+  id: number,
+  updateLiteraryCountryBody: UpdateLiteraryCountryBody,
+  options?: RequestInit,
+): Promise<LiteraryCountry> => {
+  return customFetch<LiteraryCountry>(getUpdateLiteraryCountryUrl(id), {
+    ...options,
+    method: "PUT",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(updateLiteraryCountryBody),
+  });
+};
+
+export const getUpdateLiteraryCountryMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateLiteraryCountry>>,
+    TError,
+    { id: number; data: BodyType<UpdateLiteraryCountryBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateLiteraryCountry>>,
+  TError,
+  { id: number; data: BodyType<UpdateLiteraryCountryBody> },
+  TContext
+> => {
+  const mutationKey = ["updateLiteraryCountry"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateLiteraryCountry>>,
+    { id: number; data: BodyType<UpdateLiteraryCountryBody> }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return updateLiteraryCountry(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateLiteraryCountryMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateLiteraryCountry>>
+>;
+export type UpdateLiteraryCountryMutationBody =
+  BodyType<UpdateLiteraryCountryBody>;
+export type UpdateLiteraryCountryMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Update a literary country
+ */
+export const useUpdateLiteraryCountry = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateLiteraryCountry>>,
+    TError,
+    { id: number; data: BodyType<UpdateLiteraryCountryBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateLiteraryCountry>>,
+  TError,
+  { id: number; data: BodyType<UpdateLiteraryCountryBody> },
+  TContext
+> => {
+  return useMutation(getUpdateLiteraryCountryMutationOptions(options));
+};
 
 /**
  * @summary Verify admin password

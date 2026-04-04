@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { BookOpen, Settings, Users, Vote, Plus, Edit2, Trash2, KeyRound } from "lucide-react";
+import { BookOpen, Globe, Users, Vote, Plus, Trash2, KeyRound, Pencil, Check, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,7 +18,7 @@ import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { CLUB_AVATARS, ClubAvatar } from "@/components/Avatars";
 
 import {
   useVerifyAdminPassword,
@@ -36,11 +36,14 @@ import {
   useArchiveMember,
   useGetCurrentBook,
   useUpdateCurrentBook,
+  useGetLiteraryCountries,
+  useUpdateLiteraryCountry,
   getGetVotingSessionQueryKey,
   getGetVotingBooksQueryKey,
   getGetVotingCodesQueryKey,
   getGetAdminLeaderboardQueryKey,
-  getGetCurrentBookQueryKey
+  getGetCurrentBookQueryKey,
+  getGetLiteraryCountriesQueryKey,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -108,6 +111,9 @@ export default function Admin() {
             <TabsTrigger value="current" className="data-[state=active]:bg-[#0F1F3D] data-[state=active]:text-white px-6 py-2.5 rounded-md">
               <BookOpen className="w-4 h-4 mr-2" /> Libro en Ruta
             </TabsTrigger>
+            <TabsTrigger value="countries" className="data-[state=active]:bg-[#0F1F3D] data-[state=active]:text-white px-6 py-2.5 rounded-md">
+              <Globe className="w-4 h-4 mr-2" /> Países Literarios
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="voting" className="m-0">
@@ -118,6 +124,9 @@ export default function Admin() {
           </TabsContent>
           <TabsContent value="current" className="m-0">
             <CurrentBookAdminTab />
+          </TabsContent>
+          <TabsContent value="countries" className="m-0">
+            <LiteraryCountriesAdminTab />
           </TabsContent>
         </Tabs>
       </main>
@@ -365,27 +374,31 @@ function LeaderboardAdminTab() {
   const { toast } = useToast();
 
   const [isAddOpen, setIsAddOpen] = useState(false);
-  const form = useForm({ defaultValues: { alias: "", avatar: "", points: 0 } });
+  const [selectedAvatar, setSelectedAvatar] = useState("luna");
+  const [alias, setAlias] = useState("");
+  const [points, setPoints] = useState(0);
 
-  const handleAdd = (values: any) => {
-    addMember.mutate({ data: { ...values, points: Number(values.points) } }, {
+  const handleAdd = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!alias.trim() || !selectedAvatar) return;
+    addMember.mutate({ data: { alias: alias.trim(), avatar: selectedAvatar, points } }, {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: getGetAdminLeaderboardQueryKey() });
         setIsAddOpen(false);
-        form.reset();
+        setAlias(""); setPoints(0); setSelectedAvatar("luna");
         toast({ title: "Éxito", description: "Miembro añadido" });
       }
     });
   };
 
-  const handleUpdatePoints = (id: number, points: number) => {
-    updateMember.mutate({ id, data: { points } }, {
+  const handleUpdatePoints = (id: number, newPoints: number) => {
+    updateMember.mutate({ id, data: { points: newPoints } }, {
       onSuccess: () => queryClient.invalidateQueries({ queryKey: getGetAdminLeaderboardQueryKey() })
     });
   };
 
   const handleArchive = (id: number) => {
-    if(confirm("¿Seguro que quieres archivar este miembro? No aparecerá en el ranking público.")) {
+    if (confirm("¿Seguro que quieres archivar este miembro? No aparecerá en el ranking público.")) {
       archiveMember.mutate({ id }, {
         onSuccess: () => queryClient.invalidateQueries({ queryKey: getGetAdminLeaderboardQueryKey() })
       });
@@ -397,19 +410,38 @@ function LeaderboardAdminTab() {
       <CardHeader className="flex flex-row items-center justify-between">
         <div>
           <CardTitle>Gestión de Exploradoras</CardTitle>
-          <CardDescription>Administra puntos y rangos</CardDescription>
+          <CardDescription>Administra puntos y rangos del Muro de Exploradoras</CardDescription>
         </div>
         <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-[#0F1F3D] text-white"><Plus className="w-4 h-4 mr-2"/> Nuevo Miembro</Button>
+            <Button className="bg-[#0F1F3D] text-white"><Plus className="w-4 h-4 mr-2"/> Nueva Exploradora</Button>
           </DialogTrigger>
-          <DialogContent>
-            <DialogHeader><DialogTitle>Registrar Exploradora Manual</DialogTitle></DialogHeader>
-            <form onSubmit={form.handleSubmit(handleAdd)} className="space-y-4">
-              <Input placeholder="Alias" {...form.register("alias")} required />
-              <Input placeholder="URL Avatar" {...form.register("avatar")} required />
-              <Input type="number" placeholder="Puntos Iniciales" {...form.register("points")} required />
-              <Button type="submit" className="w-full" disabled={addMember.isPending}>Guardar</Button>
+          <DialogContent className="sm:max-w-lg">
+            <DialogHeader><DialogTitle>Registrar Exploradora</DialogTitle></DialogHeader>
+            <form onSubmit={handleAdd} className="space-y-5">
+              <div className="space-y-2">
+                <label className="text-sm font-semibold">Alias</label>
+                <Input placeholder="Alias" value={alias} onChange={e => setAlias(e.target.value)} required />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-semibold">Personaje</label>
+                <div className="grid grid-cols-4 gap-2">
+                  {CLUB_AVATARS.map(def => (
+                    <button key={def.id} type="button" onClick={() => setSelectedAvatar(def.id)}
+                      className={`flex flex-col items-center gap-1 p-2 rounded-xl border-2 transition-all ${selectedAvatar === def.id ? 'border-[#E8523A] bg-[#E8523A]/5' : 'border-gray-200 hover:border-gray-300'}`}>
+                      <div className="rounded-full overflow-hidden" style={{ width: 44, height: 44, background: def.bg }}>
+                        <div style={{ width: 44, height: 44 }}>{def.svg}</div>
+                      </div>
+                      <span className="text-[10px] font-medium text-center leading-tight">{def.name}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-semibold">Puntos Iniciales</label>
+                <Input type="number" value={points} onChange={e => setPoints(Number(e.target.value))} min={0} />
+              </div>
+              <Button type="submit" className="w-full bg-[#0F1F3D] text-white" disabled={addMember.isPending || !alias.trim()}>Guardar</Button>
             </form>
           </DialogContent>
         </Dialog>
@@ -421,30 +453,30 @@ function LeaderboardAdminTab() {
               <TableHead>Miembro</TableHead>
               <TableHead>Rango</TableHead>
               <TableHead>Puntos</TableHead>
-              <TableHead className="w-[100px]"></TableHead>
+              <TableHead className="w-[80px]"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {members?.map(m => (
               <TableRow key={m.id} className={m.archived ? "opacity-50 bg-gray-50" : ""}>
-                <TableCell className="flex items-center gap-3">
-                  <Avatar className="h-8 w-8"><AvatarImage src={m.avatar}/></Avatar>
-                  <span className="font-bold">{m.alias} {m.archived && "(Archivado)"}</span>
+                <TableCell>
+                  <div className="flex items-center gap-3">
+                    <ClubAvatar avatarId={m.avatar} size={32} />
+                    <span className="font-bold">{m.alias} {m.archived && <span className="text-gray-400 font-normal text-xs">(Archivada)</span>}</span>
+                  </div>
                 </TableCell>
                 <TableCell><Badge variant="outline">{m.rank}</Badge></TableCell>
                 <TableCell>
-                  <div className="flex items-center gap-2 max-w-[120px]">
-                    <Input 
-                      type="number" 
-                      defaultValue={m.points} 
-                      className="h-8 w-20 text-right"
-                      onBlur={(e) => {
-                        const val = Number(e.target.value);
-                        if (val !== m.points) handleUpdatePoints(m.id, val);
-                      }}
-                      disabled={m.archived}
-                    />
-                  </div>
+                  <Input
+                    type="number"
+                    defaultValue={m.points}
+                    className="h-8 w-24 text-right"
+                    onBlur={(e) => {
+                      const val = Number(e.target.value);
+                      if (val !== m.points) handleUpdatePoints(m.id, val);
+                    }}
+                    disabled={m.archived}
+                  />
                 </TableCell>
                 <TableCell>
                   {!m.archived && (
@@ -555,5 +587,111 @@ function CurrentBookAdminTab() {
         </Form>
       </CardContent>
     </Card>
+  );
+}
+
+function LiteraryCountriesAdminTab() {
+  const queryClient = useQueryClient();
+  const { data: countries } = useGetLiteraryCountries();
+  const updateCountry = useUpdateLiteraryCountry();
+  const { toast } = useToast();
+
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editForm, setEditForm] = useState({ name: "", emoji: "", description: "", color: "", booksRead: 0 });
+
+  const startEdit = (c: { id: number; name: string; emoji: string; description: string; color: string; booksRead: number }) => {
+    setEditingId(c.id);
+    setEditForm({ name: c.name, emoji: c.emoji, description: c.description, color: c.color, booksRead: c.booksRead });
+  };
+
+  const cancelEdit = () => setEditingId(null);
+
+  const saveEdit = (id: number) => {
+    updateCountry.mutate({ id, data: { ...editForm, booksRead: Number(editForm.booksRead) } }, {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: getGetLiteraryCountriesQueryKey() });
+        setEditingId(null);
+        toast({ title: "Guardado", description: "País literario actualizado" });
+      },
+      onError: () => toast({ title: "Error", description: "No se pudo guardar", variant: "destructive" }),
+    });
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-lg font-bold text-[#0F1F3D]">Los 7 Países Literarios</h2>
+          <p className="text-sm text-gray-500">Edita el nombre, descripción, emoji, color y libros leídos de cada género</p>
+        </div>
+      </div>
+
+      <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
+        {countries?.map(c => (
+          <Card key={c.id} className="overflow-hidden">
+            {/* Preview header */}
+            <div className="h-16 flex items-center px-5 gap-3 relative" style={{ backgroundColor: c.color }}>
+              <span className="text-3xl">{editingId === c.id ? editForm.emoji : c.emoji}</span>
+              <span className="font-display font-bold text-white text-lg">
+                {editingId === c.id ? editForm.name : c.name}
+              </span>
+              <div className="absolute inset-2 border border-white/20 rounded-md border-dashed pointer-events-none"></div>
+            </div>
+
+            <CardContent className="p-4">
+              {editingId === c.id ? (
+                <div className="space-y-3">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <label className="text-xs font-semibold text-gray-600">Nombre</label>
+                      <Input value={editForm.name} onChange={e => setEditForm(f => ({ ...f, name: e.target.value }))} className="h-8 text-sm" />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs font-semibold text-gray-600">Emoji</label>
+                      <Input value={editForm.emoji} onChange={e => setEditForm(f => ({ ...f, emoji: e.target.value }))} className="h-8 text-sm" />
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-gray-600">Descripción</label>
+                    <Input value={editForm.description} onChange={e => setEditForm(f => ({ ...f, description: e.target.value }))} className="h-8 text-sm" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <label className="text-xs font-semibold text-gray-600">Color (hex)</label>
+                      <div className="flex gap-2 items-center">
+                        <input type="color" value={editForm.color} onChange={e => setEditForm(f => ({ ...f, color: e.target.value }))} className="h-8 w-10 rounded cursor-pointer border border-gray-200" />
+                        <Input value={editForm.color} onChange={e => setEditForm(f => ({ ...f, color: e.target.value }))} className="h-8 text-sm flex-1" />
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs font-semibold text-gray-600">Libros leídos</label>
+                      <Input type="number" min={0} value={editForm.booksRead} onChange={e => setEditForm(f => ({ ...f, booksRead: Number(e.target.value) }))} className="h-8 text-sm" />
+                    </div>
+                  </div>
+                  <div className="flex gap-2 pt-1">
+                    <Button size="sm" className="flex-1 bg-[#E8523A] text-white h-8" onClick={() => saveEdit(c.id)} disabled={updateCountry.isPending}>
+                      <Check className="w-3 h-3 mr-1" /> Guardar
+                    </Button>
+                    <Button size="sm" variant="outline" className="h-8" onClick={cancelEdit}>
+                      <X className="w-3 h-3 mr-1" /> Cancelar
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <p className="text-sm text-gray-600">{c.description}</p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-gray-400">📚 {c.booksRead} libros leídos</span>
+                    <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => startEdit(c)}>
+                      <Pencil className="w-3 h-3 mr-1" /> Editar
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </div>
   );
 }
