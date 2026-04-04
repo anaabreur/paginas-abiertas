@@ -329,7 +329,7 @@ function VotingAdminTab() {
                     Creada: {format(new Date(session.createdAt), "dd/MM/yyyy")} 
                     {session.deadline && ` • Cierra: ${format(new Date(session.deadline), "dd/MM/yyyy")}`}
                   </p>
-                  <Button size="sm" className="bg-[#E8523A] hover:bg-[#E8523A]/90 text-white ml-2" onClick={openEditDeadlineDialog}><Pencil className="w-4 h-4"/></Button>
+                  <Button size="sm" className="bg-black hover:bg-gray-800 text-white ml-2" onClick={openEditDeadlineDialog}><Pencil className="w-4 h-4"/></Button>
                   <Dialog open={isEditDeadlineOpen} onOpenChange={setIsEditDeadlineOpen}>
                     <DialogContent>
                       <DialogHeader><DialogTitle>Editar Fecha de Cierre</DialogTitle></DialogHeader>
