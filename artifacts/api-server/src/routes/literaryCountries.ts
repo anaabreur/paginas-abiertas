@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { asc, eq } from "drizzle-orm";
+import { asc, desc, eq } from "drizzle-orm";
 import {
   db,
   literaryCountriesTable,
@@ -7,6 +7,7 @@ import {
   expeditionMembersTable,
   membersTable,
   countryGalleryTable,
+  candidateBooksTable,
 } from "@workspace/db";
 
 const router: IRouter = Router();
@@ -73,6 +74,24 @@ router.get("/literary-countries/:id/expeditions", async (req, res): Promise<void
   );
 
   res.json(result);
+});
+
+router.get("/literary-countries/:id/books", async (req, res): Promise<void> => {
+  const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const id = parseInt(raw, 10);
+
+  const books = await db
+    .select()
+    .from(candidateBooksTable)
+    .where(eq(candidateBooksTable.countryId, id))
+    .orderBy(desc(candidateBooksTable.createdAt));
+
+  res.json(
+    books.map((b) => ({
+      ...b,
+      createdAt: b.createdAt.toISOString(),
+    }))
+  );
 });
 
 router.get("/literary-countries/:id/gallery", async (req, res): Promise<void> => {

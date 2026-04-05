@@ -12,4 +12,5 @@ export interface AddBookBody {
   genre: string;
   coverUrl: string;
   synopsis: string;
+  countryId?: number | null;
 }

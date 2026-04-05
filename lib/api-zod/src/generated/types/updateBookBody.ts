@@ -13,4 +13,5 @@ export interface UpdateBookBody {
   coverUrl?: string;
   synopsis?: string;
   isWinner?: boolean;
+  countryId?: number | null;
 }

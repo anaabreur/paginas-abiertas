@@ -43,6 +43,7 @@ export const GetVotingBooksResponseItem = zod.object({
   synopsis: zod.string(),
   votes: zod.number(),
   isWinner: zod.boolean(),
+  countryId: zod.number().nullish(),
 });
 export const GetVotingBooksResponse = zod.array(GetVotingBooksResponseItem);
 
@@ -169,6 +170,27 @@ export const GetCountryExpeditionsResponseItem = zod.object({
 export const GetCountryExpeditionsResponse = zod.array(
   GetCountryExpeditionsResponseItem,
 );
+
+/**
+ * @summary Get candidate books tagged to a literary country
+ */
+export const GetCountryBooksParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const GetCountryBooksResponseItem = zod.object({
+  id: zod.number(),
+  sessionId: zod.number(),
+  title: zod.string(),
+  author: zod.string(),
+  genre: zod.string(),
+  coverUrl: zod.string(),
+  synopsis: zod.string(),
+  votes: zod.number(),
+  isWinner: zod.boolean(),
+  countryId: zod.number().nullish(),
+});
+export const GetCountryBooksResponse = zod.array(GetCountryBooksResponseItem);
 
 /**
  * @summary Get gallery photos for a country
@@ -438,6 +460,7 @@ export const AddCandidateBookBody = zod.object({
   genre: zod.string(),
   coverUrl: zod.string(),
   synopsis: zod.string(),
+  countryId: zod.number().nullish(),
 });
 
 export const AddCandidateBookResponse = zod.object({
@@ -450,6 +473,7 @@ export const AddCandidateBookResponse = zod.object({
   synopsis: zod.string(),
   votes: zod.number(),
   isWinner: zod.boolean(),
+  countryId: zod.number().nullish(),
 });
 
 /**
@@ -466,6 +490,7 @@ export const UpdateCandidateBookBody = zod.object({
   coverUrl: zod.string().optional(),
   synopsis: zod.string().optional(),
   isWinner: zod.boolean().optional(),
+  countryId: zod.number().nullish(),
 });
 
 export const UpdateCandidateBookResponse = zod.object({
@@ -478,6 +503,7 @@ export const UpdateCandidateBookResponse = zod.object({
   synopsis: zod.string(),
   votes: zod.number(),
   isWinner: zod.boolean(),
+  countryId: zod.number().nullish(),
 });
 
 /**

@@ -12,6 +12,7 @@ export const candidateBooksTable = pgTable("candidate_books", {
   synopsis: text("synopsis").notNull(),
   votes: integer("votes").notNull().default(0),
   isWinner: boolean("is_winner").notNull().default(false),
+  countryId: integer("country_id"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

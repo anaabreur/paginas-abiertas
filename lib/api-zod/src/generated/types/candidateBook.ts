@@ -16,4 +16,5 @@ export interface CandidateBook {
   synopsis: string;
   votes: number;
   isWinner: boolean;
+  countryId?: number | null;
 }

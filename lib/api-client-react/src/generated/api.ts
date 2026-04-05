@@ -773,6 +773,93 @@ export function useGetCountryExpeditions<
 }
 
 /**
+ * @summary Get candidate books tagged to a literary country
+ */
+export const getGetCountryBooksUrl = (id: number) => {
+  return `/api/literary-countries/${id}/books`;
+};
+
+export const getCountryBooks = async (
+  id: number,
+  options?: RequestInit,
+): Promise<CandidateBook[]> => {
+  return customFetch<CandidateBook[]>(getGetCountryBooksUrl(id), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetCountryBooksQueryKey = (id: number) => {
+  return [`/api/literary-countries/${id}/books`] as const;
+};
+
+export const getGetCountryBooksQueryOptions = <
+  TData = Awaited<ReturnType<typeof getCountryBooks>>,
+  TError = ErrorType<unknown>,
+>(
+  id: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getCountryBooks>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetCountryBooksQueryKey(id);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getCountryBooks>>> = ({
+    signal,
+  }) => getCountryBooks(id, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getCountryBooks>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetCountryBooksQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getCountryBooks>>
+>;
+export type GetCountryBooksQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get candidate books tagged to a literary country
+ */
+
+export function useGetCountryBooks<
+  TData = Awaited<ReturnType<typeof getCountryBooks>>,
+  TError = ErrorType<unknown>,
+>(
+  id: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getCountryBooks>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetCountryBooksQueryOptions(id, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
  * @summary Get gallery photos for a country
  */
 export const getGetCountryGalleryUrl = (id: number) => {

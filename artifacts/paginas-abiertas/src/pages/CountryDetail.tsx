@@ -8,6 +8,7 @@ import {
   useGetCountryExpeditions,
   useGetCountryGallery,
   useGetCurrentBook,
+  useGetCountryBooks,
 } from "@workspace/api-client-react";
 
 function ClosingActivityBadge({ activity, desc }: { activity: string; desc: string }) {
@@ -36,6 +37,7 @@ export default function CountryDetail() {
   const { data: expeditions = [] } = useGetCountryExpeditions(countryId);
   const { data: gallery = [] } = useGetCountryGallery(countryId);
   const { data: currentBookData } = useGetCurrentBook();
+  const { data: countryBooks = [] } = useGetCountryBooks(countryId);
 
   const currentBook = currentBookData?.book;
   const isCurrentCountry =
@@ -169,6 +171,51 @@ export default function CountryDetail() {
               </div>
             </div>
           </motion.section>
+        )}
+
+        {/* ── LIBROS DEL PAÍS ──────────────────────────────────────────── */}
+        {countryBooks.length > 0 && (
+          <section>
+            <div className="flex items-center gap-3 mb-6">
+              <h2 className="font-display font-bold text-2xl text-[#0F1F3D]">Libros de este País</h2>
+              <Badge variant="outline" className="text-xs">{countryBooks.length} {countryBooks.length === 1 ? "libro" : "libros"}</Badge>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              {countryBooks.map((book, i) => (
+                <motion.div
+                  key={book.id}
+                  initial={{ opacity: 0, y: 16 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.05 }}
+                  className="bg-white rounded-2xl shadow-sm border border-gray-100 flex gap-4 p-4 overflow-hidden"
+                >
+                  {book.coverUrl ? (
+                    <img src={book.coverUrl} alt={book.title} className="w-16 h-24 object-cover rounded-lg flex-shrink-0" />
+                  ) : (
+                    <div
+                      className="w-16 h-24 rounded-lg flex-shrink-0 flex items-center justify-center text-2xl"
+                      style={{ backgroundColor: country.color + "30" }}
+                    >
+                      {country.emoji}
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold text-[#0F1F3D] leading-tight line-clamp-2">{book.title}</p>
+                    <p className="text-sm text-gray-500 mt-0.5">{book.author}</p>
+                    {book.isWinner && (
+                      <span className="inline-flex items-center gap-1 text-xs font-semibold text-yellow-700 bg-yellow-100 rounded-full px-2 py-0.5 mt-2">
+                        🏆 Ganador
+                      </span>
+                    )}
+                    {book.synopsis && (
+                      <p className="text-xs text-gray-500 mt-2 line-clamp-2 leading-relaxed">{book.synopsis}</p>
+                    )}
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </section>
         )}
 
         {/* ── EXPEDICIONES COMPLETADAS ──────────────────────────────────── */}

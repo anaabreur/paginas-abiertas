@@ -42,6 +42,7 @@ import {
   useGetCurrentBook,
   useUpdateCurrentBook,
   useGetLiteraryCountries,
+  useGetCountryBooks,
   useUpdateLiteraryCountry,
   useGetCountryExpeditions,
   useGetCountryGallery,
@@ -155,6 +156,7 @@ function VotingAdminTab() {
   const { data: sessionData } = useGetVotingSession();
   const { data: books } = useGetVotingBooks();
   const { data: codes } = useGetVotingCodes();
+  const { data: countries } = useGetLiteraryCountries();
 
   const session = sessionData?.session;
 
@@ -171,6 +173,8 @@ function VotingAdminTab() {
   const [isNewSessionOpen, setIsNewSessionOpen] = useState(false);
   const [isAddBookOpen, setIsAddBookOpen] = useState(false);
   const [isEditBookOpen, setIsEditBookOpen] = useState(false);
+  const [addBookCountryId, setAddBookCountryId] = useState<number | null>(null);
+  const [editBookCountryId, setEditBookCountryId] = useState<number | null>(null);
   const [isEditDeadlineOpen, setIsEditDeadlineOpen] = useState(false);
   const [editingBookId, setEditingBookId] = useState<number | null>(null);
   const [editDeadline, setEditDeadline] = useState("");
@@ -227,10 +231,11 @@ function VotingAdminTab() {
   };
 
   const handleAddBook = (values: any) => {
-    addBook.mutate({ data: values }, {
+    addBook.mutate({ data: { ...values, countryId: addBookCountryId } }, {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: getGetVotingBooksQueryKey() });
         setIsAddBookOpen(false);
+        setAddBookCountryId(null);
         bookForm.reset();
         toast({ title: "Éxito", description: "Libro añadido" });
       }
@@ -239,11 +244,12 @@ function VotingAdminTab() {
 
   const handleEditBook = (values: any) => {
     if (!editingBookId) return;
-    updateBook.mutate({ id: editingBookId, data: values }, {
+    updateBook.mutate({ id: editingBookId, data: { ...values, countryId: editBookCountryId } }, {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: getGetVotingBooksQueryKey() });
         setIsEditBookOpen(false);
         setEditingBookId(null);
+        setEditBookCountryId(null);
         editBookForm.reset();
         toast({ title: "Éxito", description: "Libro actualizado" });
       }
@@ -271,6 +277,7 @@ function VotingAdminTab() {
 
   const openEditDialog = (book: any) => {
     setEditingBookId(book.id);
+    setEditBookCountryId(book.countryId ?? null);
     editBookForm.reset({
       title: book.title,
       author: book.author,
@@ -384,6 +391,16 @@ function VotingAdminTab() {
                   <Input placeholder="Género (Ej: Fantasía)" {...bookForm.register("genre")} required />
                   <Input placeholder="URL de Portada" {...bookForm.register("coverUrl")} required />
                   <Textarea placeholder="Sinopsis" {...bookForm.register("synopsis")} required />
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium text-gray-600">País Literario (tag)</label>
+                    <Select value={addBookCountryId?.toString() ?? "none"} onValueChange={(v) => setAddBookCountryId(v === "none" ? null : parseInt(v))}>
+                      <SelectTrigger><SelectValue placeholder="Sin país asignado" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Sin país asignado</SelectItem>
+                        {countries?.map(c => <SelectItem key={c.id} value={c.id.toString()}>{c.emoji} {c.name}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
                   <Button type="submit" className="w-full" disabled={addBook.isPending}>Guardar</Button>
                 </form>
               </DialogContent>
@@ -397,6 +414,16 @@ function VotingAdminTab() {
                   <Input placeholder="Género (Ej: Fantasía)" {...editBookForm.register("genre")} required />
                   <Input placeholder="URL de Portada" {...editBookForm.register("coverUrl")} required />
                   <Textarea placeholder="Sinopsis" {...editBookForm.register("synopsis")} required />
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium text-gray-600">País Literario (tag)</label>
+                    <Select value={editBookCountryId?.toString() ?? "none"} onValueChange={(v) => setEditBookCountryId(v === "none" ? null : parseInt(v))}>
+                      <SelectTrigger><SelectValue placeholder="Sin país asignado" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Sin país asignado</SelectItem>
+                        {countries?.map(c => <SelectItem key={c.id} value={c.id.toString()}>{c.emoji} {c.name}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
                   <Button type="submit" className="w-full" disabled={updateBook.isPending}>Guardar Cambios</Button>
                 </form>
               </DialogContent>

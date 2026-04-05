@@ -43,6 +43,7 @@ export interface CandidateBook {
   synopsis: string;
   votes: number;
   isWinner: boolean;
+  countryId?: number | null;
 }
 
 export interface CastVoteBody {
@@ -125,6 +126,7 @@ export interface AddBookBody {
   genre: string;
   coverUrl: string;
   synopsis: string;
+  countryId?: number | null;
 }
 
 export interface UpdateBookBody {
@@ -134,6 +136,7 @@ export interface UpdateBookBody {
   coverUrl?: string;
   synopsis?: string;
   isWinner?: boolean;
+  countryId?: number | null;
 }
 
 export interface UpdateSessionBody {

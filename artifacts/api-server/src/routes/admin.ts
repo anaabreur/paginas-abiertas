@@ -136,12 +136,13 @@ router.put("/admin/voting/session/:id", async (req, res): Promise<void> => {
 });
 
 router.post("/admin/voting/books", async (req, res): Promise<void> => {
-  const { title, author, genre, coverUrl, synopsis } = req.body as {
+  const { title, author, genre, coverUrl, synopsis, countryId } = req.body as {
     title: string;
     author: string;
     genre: string;
     coverUrl: string;
     synopsis: string;
+    countryId?: number | null;
   };
 
   const sessions = await db
@@ -164,6 +165,7 @@ router.post("/admin/voting/books", async (req, res): Promise<void> => {
       genre,
       coverUrl,
       synopsis,
+      countryId: countryId ?? null,
     })
     .returning();
 
