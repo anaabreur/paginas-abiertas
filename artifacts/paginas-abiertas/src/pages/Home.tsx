@@ -5,8 +5,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { 
-  BookOpen, Compass, Map, Star, Award, 
-  ChevronRight, Plane, MapPin, ChevronDown, Menu, X, Check
+  BookOpen, Compass, Map, Star,
+  ChevronRight, Plane, ChevronDown, Menu, X, Check
 } from "lucide-react";
 import { format, differenceInDays } from "date-fns";
 import { es } from "date-fns/locale";
@@ -59,7 +59,7 @@ function Navbar() {
           <button onClick={() => scrollTo("votacion")} className="hover:text-[#4DC8E0] transition-colors">Votación</button>
           <button onClick={() => scrollTo("exploradoras")} className="hover:text-[#4DC8E0] transition-colors">Exploradoras</button>
           <Button onClick={() => scrollTo("votacion")} className="bg-[#E8523A] hover:bg-[#E8523A]/90 text-white font-bold ml-4">
-            ¿Qué leeremos?
+            Comienza tu viaje
           </Button>
         </div>
 
@@ -85,7 +85,7 @@ function Navbar() {
               <button onClick={() => scrollTo("votacion")} className="text-left font-medium">Votación</button>
               <button onClick={() => scrollTo("exploradoras")} className="text-left font-medium">Exploradoras</button>
               <Button onClick={() => scrollTo("votacion")} className="bg-[#E8523A] text-white font-bold mt-2">
-                ¿Qué leeremos?
+                Comienza tu viaje
               </Button>
             </div>
           </motion.div>
@@ -172,53 +172,124 @@ function ClubSection() {
       <div className="container mx-auto px-4 md:px-6">
         <div className="text-center max-w-3xl mx-auto mb-16">
           <h2 className="font-display font-bold text-4xl md:text-5xl text-[#0F1F3D] mb-6">
-            <span className="italic font-light text-[#4DC8E0]">No solo lees libros,</span><br />
-            viajas a mundos
+            Cada libro es un país. ¿Lista para explorar el mundo?
           </h2>
+          <p className="text-lg text-gray-600 mb-6">
+            Únete a una comunidad de exploradoras que viajan por mundos mágicos, misterios y aventuras sin salir de República Dominicana.
+          </p>
           <div className="flex flex-wrap justify-center gap-3">
             <Badge variant="secondary" className="bg-gray-100 text-gray-800 text-sm font-medium px-4 py-1.5">Gratuito</Badge>
             <Badge variant="secondary" className="bg-gray-100 text-gray-800 text-sm font-medium px-4 py-1.5">Presencial</Badge>
             <Badge variant="secondary" className="bg-[#E8523A]/10 text-[#E8523A] text-sm font-bold px-4 py-1.5">12–17 años</Badge>
             <Badge variant="secondary" className="bg-gray-100 text-gray-800 text-sm font-medium px-4 py-1.5">Cada 2 semanas</Badge>
           </div>
+          <p className="mt-6 text-base font-medium text-[#0F1F3D]">
+            Colecciona historias. Gana sellos. Conviértete en una Leyenda Literaria.
+          </p>
         </div>
 
         <div className="grid md:grid-cols-3 gap-8">
           <Card className="border-2 border-dashed border-gray-200 hover:border-[#4DC8E0] transition-colors group">
             <CardHeader>
-              <div className="h-14 w-14 rounded-full bg-[#4DC8E0]/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                <MapPin className="h-7 w-7 text-[#4DC8E0]" />
+              <div className="h-14 w-14 rounded-full bg-[#4DC8E0]/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform text-3xl">
+                🛬
               </div>
-              <CardTitle className="font-display text-xl text-[#0F1F3D]">Cada libro es un destino</CardTitle>
+              <CardTitle className="font-display text-xl text-[#0F1F3D]">Viaja sin salir de tu ciudad</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-600">Exploramos géneros como si fueran países. Un mes en el reino de la Fantasía, al siguiente en la capital del Misterio.</p>
+              <p className="text-gray-600">Cada libro te lleva a un nuevo país literario. Hoy puedes resolver un misterio y mañana estudiar magia. El grupo decide la ruta.</p>
             </CardContent>
           </Card>
           
           <Card className="border-2 border-dashed border-gray-200 hover:border-[#E8523A] transition-colors group">
             <CardHeader>
-              <div className="h-14 w-14 rounded-full bg-[#E8523A]/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                <Award className="h-7 w-7 text-[#E8523A]" />
+              <div className="h-14 w-14 rounded-full bg-[#E8523A]/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform text-3xl">
+                🛂
               </div>
-              <CardTitle className="font-display text-xl text-[#0F1F3D]">Gana sellos en tu pasaporte</CardTitle>
+              <CardTitle className="font-display text-xl text-[#0F1F3D]">
+                Llena tu pasaporte de aventuras
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-600">Por cada libro leído y reunión asistida, obtienes sellos físicos para tu pasaporte oficial del club y puntos para el ranking.</p>
+              <p className="text-gray-600">
+                Completa lecturas, participa en las misiones y colecciona sellos exclusivos de cada país literario que visites.
+              </p>
             </CardContent>
           </Card>
 
           <Card className="border-2 border-dashed border-gray-200 hover:border-[#F5E642] transition-colors group">
             <CardHeader>
-              <div className="h-14 w-14 rounded-full bg-[#F5E642]/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                <Compass className="h-7 w-7 text-[#D4C41B]" />
+              <div className="h-14 w-14 rounded-full bg-[#F5E642]/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform text-3xl">
+                👑
               </div>
-              <CardTitle className="font-display text-xl text-[#0F1F3D]">Sube de rango como exploradora</CardTitle>
+              <CardTitle className="font-display text-xl text-[#0F1F3D]">
+                Conviértete en una Leyenda Literaria
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-600">Desde Novata hasta Leyenda Literaria. Tu dedicación te da prestigio dentro del club y el poder de proponer libros.</p>
+              <p className="text-gray-600">
+                Empieza como Novata y asciende hasta convertirte en Embajadora o Leyenda Literaria mientras acumulas puntos y conquistas nuevos territorios.
+              </p>
             </CardContent>
           </Card>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+const HOW_IT_WORKS_STEPS = [
+  {
+    emoji: "1️⃣",
+    title: "Recibe tu pasaporte",
+    description: "Obtén tu Pasaporte Lector oficial y prepárate para despegar.",
+  },
+  {
+    emoji: "2️⃣",
+    title: "Viaja a un país literario",
+    description: "Misterio, Fantasía, Romance, Ciencia Ficción, Terror, Drama o Aventura.",
+  },
+  {
+    emoji: "3️⃣",
+    title: "Completa misiones",
+    description: "Resuelve expedientes, participa en debates y gana puntos.",
+  },
+  {
+    emoji: "4️⃣",
+    title: "Colecciona sellos",
+    description: "Cada libro completado deja una marca en tu pasaporte.",
+  },
+  {
+    emoji: "5️⃣",
+    title: "Sube de rango",
+    description: "De Novata a Leyenda Literaria.",
+  },
+] as const;
+
+function HowItWorksSection() {
+  return (
+    <section id="como-funciona" className="py-24 bg-gray-50 border-t border-gray-200">
+      <div className="container mx-auto px-4 md:px-6">
+        <h2 className="font-display font-bold text-3xl md:text-4xl text-[#0F1F3D] mb-12 text-center">
+          ¿Cómo funciona?
+        </h2>
+        <div className="grid gap-8 md:grid-cols-5 md:gap-6 max-w-6xl mx-auto">
+          {HOW_IT_WORKS_STEPS.map((step, i) => (
+            <motion.div
+              key={step.title}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.08 }}
+              className="text-center md:text-left"
+            >
+              <div className="text-3xl mb-4">{step.emoji}</div>
+              <h3 className="font-display font-bold text-lg text-[#0F1F3D] mb-2">
+                {step.title}
+              </h3>
+              <p className="text-sm text-gray-600 leading-relaxed">{step.description}</p>
+            </motion.div>
+          ))}
         </div>
       </div>
     </section>
@@ -244,7 +315,7 @@ function GenresSection() {
     <section id="paises" className="py-24 bg-gray-50 border-t border-b border-gray-200">
       <div className="container mx-auto px-4 md:px-6">
         <h2 className="font-display font-bold text-3xl md:text-4xl text-[#0F1F3D] mb-12 text-center">
-          Los 7 Países Literarios
+          Explora los destinos
         </h2>
         <div className="flex flex-wrap justify-center gap-6">
           {genres.map((g, i) => (
@@ -469,7 +540,7 @@ function VotingSection() {
             {isOpen ? 'Votación Abierta' : 'Votación Cerrada'}
           </Badge>
           <h2 className="font-display font-bold text-4xl md:text-5xl text-[#0F1F3D]">
-            ¿Qué leemos próximo? <span className="text-[#E8523A]">Tú decides</span>
+            Escojamos el próximo destino
           </h2>
           {session?.deadline && isOpen && (
              <p className="mt-4 text-gray-500 font-medium text-lg">
@@ -933,6 +1004,7 @@ export default function Home() {
       <main>
         <HeroSection />
         <ClubSection />
+        <HowItWorksSection />
         <GenresSection />
         <VotingSection />
         <LeaderboardSection />
