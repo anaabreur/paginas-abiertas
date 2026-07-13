@@ -1,25 +1,24 @@
 import { Router, type IRouter } from "express";
-import { desc } from "drizzle-orm";
-import { db, currentBooksTable } from "@workspace/db";
+import { desc, eq } from "drizzle-orm";
+import {
+  db,
+  librosTable,
+  LIBRO_ESTATUS,
+  mapLibroEnRuta,
+} from "@workspace/db";
 
 const router: IRouter = Router();
 
-router.get("/current-book", async (req, res): Promise<void> => {
-  const books = await db
+router.get("/current-book", async (_req, res): Promise<void> => {
+  const [book] = await db
     .select()
-    .from(currentBooksTable)
-    .orderBy(desc(currentBooksTable.updatedAt))
+    .from(librosTable)
+    .where(eq(librosTable.estatus, LIBRO_ESTATUS.ACTIVO))
+    .orderBy(desc(librosTable.creadoEn))
     .limit(1);
 
-  const book = books[0] ?? null;
   res.json({
-    book: book
-      ? {
-          ...book,
-          createdAt: book.createdAt.toISOString(),
-          updatedAt: book.updatedAt.toISOString(),
-        }
-      : null,
+    book: book ? await mapLibroEnRuta(book) : null,
   });
 });
 

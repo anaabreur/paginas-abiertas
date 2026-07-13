@@ -1,21 +1,34 @@
 import { Router, type IRouter } from "express";
-import { eq, desc } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import {
   db,
-  votingSessionsTable,
-  candidateBooksTable,
-  votingCodesTable,
-  membersTable,
-  currentBooksTable,
-  literaryCountriesTable,
-  countryExpeditionsTable,
-  expeditionMembersTable,
-  countryGalleryTable,
+  sesionesVotacionTable,
+  librosTable,
+  codigosVotacionTable,
+  miembrosTable,
+  paisesLiterariosTable,
+  lectorasTable,
+  actividadTable,
+  votacionTable,
+  LIBRO_ESTATUS,
+  ACTIVIDAD_TIPO,
+  getActiveSesionVotacion,
+  getLatestSesionVotacion,
+  getCandidatosForSesion,
+  getVoteCounts,
+  mapSesionVotacion,
+  mapMiembro,
+  mapPaisLiterario,
+  mapExpedicion,
+  mapLibroCandidato,
+  mapLibroEnRuta,
+  getOrCreateGaleriaLibro,
+  upsertActividad,
+  formatTimestamp,
 } from "@workspace/db";
 import { generateCode, getRank } from "../lib/nanoid";
 
 const router: IRouter = Router();
-
 const ADMIN_PASSWORD = "paginas2026";
 
 router.post("/admin/verify", async (req, res): Promise<void> => {
@@ -29,65 +42,58 @@ router.post("/admin/verify", async (req, res): Promise<void> => {
 
 router.post("/admin/voting/session", async (req, res): Promise<void> => {
   const { title, deadline } = req.body as { title: string; deadline?: string };
+
   if (!title) {
     res.status(400).json({ message: "Título requerido" });
     return;
   }
 
   const [session] = await db
-    .insert(votingSessionsTable)
+    .insert(sesionesVotacionTable)
     .values({
-      title,
-      status: "open",
-      deadline: deadline ? new Date(deadline) : null,
+      titulo: title,
+      abierto: true,
+      fechaLimite: deadline ? deadline.slice(0, 10) : null,
     })
     .returning();
 
-  res.json({
-    ...session,
-    deadline: session.deadline?.toISOString() ?? null,
-    createdAt: session.createdAt.toISOString(),
-  });
+  res.json(mapSesionVotacion(session));
 });
 
 router.post("/admin/voting/session/:id/close", async (req, res): Promise<void> => {
   const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const id = parseInt(raw, 10);
 
-  const sessions = await db
+  const [session] = await db
     .select()
-    .from(votingSessionsTable)
-    .where(eq(votingSessionsTable.id, id));
+    .from(sesionesVotacionTable)
+    .where(eq(sesionesVotacionTable.id, id));
 
-  if (!sessions[0]) {
+  if (!session) {
     res.status(404).json({ message: "Sesión no encontrada" });
     return;
   }
 
-  const books = await db
-    .select()
-    .from(candidateBooksTable)
-    .where(eq(candidateBooksTable.sessionId, id))
-    .orderBy(desc(candidateBooksTable.votes));
+  const books = await getCandidatosForSesion(session.creadoEn);
+  const voteCounts = await getVoteCounts(session.id);
+  const winner = [...books].sort(
+    (a, b) => (voteCounts.get(b.id) ?? 0) - (voteCounts.get(a.id) ?? 0),
+  )[0];
 
-  if (books.length > 0 && books[0]) {
+  if (winner) {
     await db
-      .update(candidateBooksTable)
-      .set({ isWinner: true })
-      .where(eq(candidateBooksTable.id, books[0].id));
+      .update(librosTable)
+      .set({ estatus: LIBRO_ESTATUS.TERMINADO })
+      .where(eq(librosTable.id, winner.id));
   }
 
   const [updated] = await db
-    .update(votingSessionsTable)
-    .set({ status: "closed" })
-    .where(eq(votingSessionsTable.id, id))
+    .update(sesionesVotacionTable)
+    .set({ abierto: false })
+    .where(eq(sesionesVotacionTable.id, id))
     .returning();
 
-  res.json({
-    ...updated,
-    deadline: updated.deadline?.toISOString() ?? null,
-    createdAt: updated.createdAt.toISOString(),
-  });
+  res.json(mapSesionVotacion(updated));
 });
 
 router.post("/admin/voting/session/:id/open", async (req, res): Promise<void> => {
@@ -95,9 +101,9 @@ router.post("/admin/voting/session/:id/open", async (req, res): Promise<void> =>
   const id = parseInt(raw, 10);
 
   const [updated] = await db
-    .update(votingSessionsTable)
-    .set({ status: "open" })
-    .where(eq(votingSessionsTable.id, id))
+    .update(sesionesVotacionTable)
+    .set({ abierto: true })
+    .where(eq(sesionesVotacionTable.id, id))
     .returning();
 
   if (!updated) {
@@ -105,11 +111,7 @@ router.post("/admin/voting/session/:id/open", async (req, res): Promise<void> =>
     return;
   }
 
-  res.json({
-    ...updated,
-    deadline: updated.deadline?.toISOString() ?? null,
-    createdAt: updated.createdAt.toISOString(),
-  });
+  res.json(mapSesionVotacion(updated));
 });
 
 router.put("/admin/voting/session/:id", async (req, res): Promise<void> => {
@@ -118,9 +120,9 @@ router.put("/admin/voting/session/:id", async (req, res): Promise<void> => {
   const { deadline } = req.body as { deadline?: string | null };
 
   const [updated] = await db
-    .update(votingSessionsTable)
-    .set({ deadline: deadline ? new Date(deadline) : null })
-    .where(eq(votingSessionsTable.id, id))
+    .update(sesionesVotacionTable)
+    .set({ fechaLimite: deadline ? deadline.slice(0, 10) : null })
+    .where(eq(sesionesVotacionTable.id, id))
     .returning();
 
   if (!updated) {
@@ -128,11 +130,7 @@ router.put("/admin/voting/session/:id", async (req, res): Promise<void> => {
     return;
   }
 
-  res.json({
-    ...updated,
-    deadline: updated.deadline?.toISOString() ?? null,
-    createdAt: updated.createdAt.toISOString(),
-  });
+  res.json(mapSesionVotacion(updated));
 });
 
 router.post("/admin/voting/books", async (req, res): Promise<void> => {
@@ -145,34 +143,26 @@ router.post("/admin/voting/books", async (req, res): Promise<void> => {
     countryId?: number | null;
   };
 
-  const sessions = await db
-    .select()
-    .from(votingSessionsTable)
-    .orderBy(desc(votingSessionsTable.createdAt))
-    .limit(1);
-
-  if (!sessions[0]) {
+  const session = await getActiveSesionVotacion();
+  if (!session || !session.abierto) {
     res.status(400).json({ message: "No hay sesión de votación activa" });
     return;
   }
 
   const [book] = await db
-    .insert(candidateBooksTable)
+    .insert(librosTable)
     .values({
-      sessionId: sessions[0].id,
-      title,
-      author,
-      genre,
+      titulo: title,
+      autor: author,
+      genero: genre,
       coverUrl,
-      synopsis,
-      countryId: countryId ?? null,
+      sinopsis: synopsis,
+      estatus: LIBRO_ESTATUS.CANDIDATO,
+      paisLiterario: countryId ?? null,
     })
     .returning();
 
-  res.json({
-    ...book,
-    createdAt: book.createdAt.toISOString(),
-  });
+  res.json(mapLibroCandidato(book, session.id, 0));
 });
 
 router.put("/admin/voting/books/:id", async (req, res): Promise<void> => {
@@ -187,18 +177,20 @@ router.put("/admin/voting/books/:id", async (req, res): Promise<void> => {
     isWinner: boolean;
   }>;
 
-  const data: Record<string, unknown> = {};
-  if (title !== undefined) data.title = title;
-  if (author !== undefined) data.author = author;
-  if (genre !== undefined) data.genre = genre;
+  const data: Partial<typeof librosTable.$inferInsert> = {};
+  if (title !== undefined) data.titulo = title;
+  if (author !== undefined) data.autor = author;
+  if (genre !== undefined) data.genero = genre;
   if (coverUrl !== undefined) data.coverUrl = coverUrl;
-  if (synopsis !== undefined) data.synopsis = synopsis;
-  if (isWinner !== undefined) data.isWinner = isWinner;
+  if (synopsis !== undefined) data.sinopsis = synopsis;
+  if (isWinner !== undefined) {
+    data.estatus = isWinner ? LIBRO_ESTATUS.TERMINADO : LIBRO_ESTATUS.CANDIDATO;
+  }
 
   const [updated] = await db
-    .update(candidateBooksTable)
+    .update(librosTable)
     .set(data)
-    .where(eq(candidateBooksTable.id, id))
+    .where(eq(librosTable.id, id))
     .returning();
 
   if (!updated) {
@@ -206,46 +198,45 @@ router.put("/admin/voting/books/:id", async (req, res): Promise<void> => {
     return;
   }
 
-  res.json({
-    ...updated,
-    createdAt: updated.createdAt.toISOString(),
-  });
+  const session = (await getActiveSesionVotacion()) ?? (await getLatestSesionVotacion());
+  const voteCounts = session ? await getVoteCounts(session.id) : new Map<number, number>();
+
+  res.json(
+    mapLibroCandidato(updated, session?.id ?? 0, voteCounts.get(updated.id) ?? 0),
+  );
 });
 
 router.delete("/admin/voting/books/:id", async (req, res): Promise<void> => {
   const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const id = parseInt(raw, 10);
 
-  await db
-    .delete(candidateBooksTable)
-    .where(eq(candidateBooksTable.id, id));
-
+  await db.delete(votacionTable).where(eq(votacionTable.libroId, id));
+  await db.delete(librosTable).where(eq(librosTable.id, id));
   res.json({ success: true });
 });
 
-router.get("/admin/voting/codes", async (req, res): Promise<void> => {
-  const sessions = await db
-    .select()
-    .from(votingSessionsTable)
-    .orderBy(desc(votingSessionsTable.createdAt))
-    .limit(1);
-
-  if (!sessions[0]) {
+router.get("/admin/voting/codes", async (_req, res): Promise<void> => {
+  const session = (await getActiveSesionVotacion()) ?? (await getLatestSesionVotacion());
+  if (!session) {
     res.json([]);
     return;
   }
 
   const codes = await db
     .select()
-    .from(votingCodesTable)
-    .where(eq(votingCodesTable.sessionId, sessions[0].id));
+    .from(codigosVotacionTable)
+    .where(eq(codigosVotacionTable.sesionId, session.id));
 
   res.json(
-    codes.map((c) => ({
-      ...c,
-      usedAt: c.usedAt?.toISOString() ?? null,
-      createdAt: c.createdAt.toISOString(),
-    }))
+    codes.map((code) => ({
+      id: code.id,
+      sessionId: code.sesionId,
+      code: code.codigo,
+      type: code.tipo,
+      used: code.usado,
+      usedAt: null,
+      createdAt: formatTimestamp(code.creadoEn),
+    })),
   );
 });
 
@@ -254,8 +245,8 @@ router.delete("/admin/voting/codes/:id", async (req, res): Promise<void> => {
   const id = parseInt(raw, 10);
 
   const [deleted] = await db
-    .delete(votingCodesTable)
-    .where(eq(votingCodesTable.id, id))
+    .delete(codigosVotacionTable)
+    .where(eq(codigosVotacionTable.id, id))
     .returning();
 
   if (!deleted) {
@@ -274,61 +265,48 @@ router.post("/admin/voting/codes", async (req, res): Promise<void> => {
     return;
   }
 
-  const sessions = await db
-    .select()
-    .from(votingSessionsTable)
-    .orderBy(desc(votingSessionsTable.createdAt))
-    .limit(1);
-
-  if (!sessions[0]) {
+  const session = await getActiveSesionVotacion();
+  if (!session || !session.abierto) {
     res.status(400).json({ message: "No hay sesión de votación activa" });
     return;
   }
 
-  const existingCodes = await db
-    .select()
-    .from(votingCodesTable);
-  const existingSet = new Set(existingCodes.map((c) => c.code));
+  const existingCodes = await db.select().from(codigosVotacionTable);
+  const existingSet = new Set(existingCodes.map((code) => code.codigo));
 
-  const newCodes: { sessionId: number; code: string; type: string }[] = [];
+  const newCodes: Array<{ sesionId: number; codigo: string; tipo: string }> = [];
   let attempts = 0;
   while (newCodes.length < quantity && attempts < 1000) {
     const code = generateCode(8);
     if (!existingSet.has(code)) {
       existingSet.add(code);
-      newCodes.push({ sessionId: sessions[0].id, code, type });
+      newCodes.push({ sesionId: session.id, codigo: code, tipo: type });
     }
     attempts++;
   }
 
-  const inserted = await db
-    .insert(votingCodesTable)
-    .values(newCodes)
-    .returning();
+  const inserted = await db.insert(codigosVotacionTable).values(newCodes).returning();
 
   res.json(
-    inserted.map((c) => ({
-      ...c,
+    inserted.map((code: (typeof inserted)[number]) => ({
+      id: code.id,
+      sessionId: code.sesionId,
+      code: code.codigo,
+      type: code.tipo,
+      used: code.usado,
       usedAt: null,
-      createdAt: c.createdAt.toISOString(),
-    }))
+      createdAt: formatTimestamp(code.creadoEn),
+    })),
   );
 });
 
-router.get("/admin/leaderboard", async (req, res): Promise<void> => {
+router.get("/admin/leaderboard", async (_req, res): Promise<void> => {
   const members = await db
     .select()
-    .from(membersTable)
-    .orderBy(desc(membersTable.points));
+    .from(miembrosTable)
+    .orderBy(desc(miembrosTable.puntos));
 
-  const ranked = members.map((m, idx) => ({
-    ...m,
-    rank: getRank(m.points),
-    position: idx + 1,
-    createdAt: m.createdAt.toISOString(),
-  }));
-
-  res.json(ranked);
+  res.json(members.map((member, index) => mapMiembro(member, index + 1)));
 });
 
 router.post("/admin/leaderboard", async (req, res): Promise<void> => {
@@ -343,46 +321,49 @@ router.post("/admin/leaderboard", async (req, res): Promise<void> => {
     return;
   }
 
+  const puntos = points ?? 0;
   const [member] = await db
-    .insert(membersTable)
-    .values({ alias, avatar, points: points ?? 0 })
+    .insert(miembrosTable)
+    .values({
+      alias,
+      avatar,
+      puntos,
+      ranking: getRank(puntos),
+      activa: true,
+    })
     .returning();
 
   const allMembers = await db
     .select()
-    .from(membersTable)
-    .where(eq(membersTable.archived, false))
-    .orderBy(desc(membersTable.points));
+    .from(miembrosTable)
+    .where(eq(miembrosTable.activa, true))
+    .orderBy(desc(miembrosTable.puntos));
 
-  const position = allMembers.findIndex((m) => m.id === member.id) + 1;
-
-  res.json({
-    ...member,
-    rank: getRank(member.points),
-    position,
-    createdAt: member.createdAt.toISOString(),
-  });
+  const position = allMembers.findIndex((row) => row.id === member.id) + 1;
+  res.json(mapMiembro(member, position));
 });
 
 router.put("/admin/leaderboard/:id", async (req, res): Promise<void> => {
   const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const id = parseInt(raw, 10);
-
   const { alias, avatar, points } = req.body as {
     alias?: string;
     avatar?: string;
     points?: number;
   };
 
-  const updateData: Partial<{ alias: string; avatar: string; points: number }> = {};
+  const updateData: Partial<typeof miembrosTable.$inferInsert> = {};
   if (alias !== undefined) updateData.alias = alias;
   if (avatar !== undefined) updateData.avatar = avatar;
-  if (points !== undefined) updateData.points = points;
+  if (points !== undefined) {
+    updateData.puntos = points;
+    updateData.ranking = getRank(points);
+  }
 
   const [updated] = await db
-    .update(membersTable)
+    .update(miembrosTable)
     .set(updateData)
-    .where(eq(membersTable.id, id))
+    .where(eq(miembrosTable.id, id))
     .returning();
 
   if (!updated) {
@@ -392,18 +373,12 @@ router.put("/admin/leaderboard/:id", async (req, res): Promise<void> => {
 
   const allMembers = await db
     .select()
-    .from(membersTable)
-    .where(eq(membersTable.archived, false))
-    .orderBy(desc(membersTable.points));
+    .from(miembrosTable)
+    .where(eq(miembrosTable.activa, true))
+    .orderBy(desc(miembrosTable.puntos));
 
-  const position = allMembers.findIndex((m) => m.id === updated.id) + 1;
-
-  res.json({
-    ...updated,
-    rank: getRank(updated.points),
-    position: position > 0 ? position : 0,
-    createdAt: updated.createdAt.toISOString(),
-  });
+  const position = allMembers.findIndex((row) => row.id === updated.id) + 1;
+  res.json(mapMiembro(updated, position > 0 ? position : 0));
 });
 
 router.delete("/admin/members/:id", async (req, res): Promise<void> => {
@@ -411,8 +386,8 @@ router.delete("/admin/members/:id", async (req, res): Promise<void> => {
   const id = parseInt(raw, 10);
 
   const [deleted] = await db
-    .delete(membersTable)
-    .where(eq(membersTable.id, id))
+    .delete(miembrosTable)
+    .where(eq(miembrosTable.id, id))
     .returning();
 
   if (!deleted) {
@@ -428,9 +403,9 @@ router.post("/admin/leaderboard/:id/archive", async (req, res): Promise<void> =>
   const id = parseInt(raw, 10);
 
   const [updated] = await db
-    .update(membersTable)
-    .set({ archived: true })
-    .where(eq(membersTable.id, id))
+    .update(miembrosTable)
+    .set({ activa: false })
+    .where(eq(miembrosTable.id, id))
     .returning();
 
   if (!updated) {
@@ -438,12 +413,7 @@ router.post("/admin/leaderboard/:id/archive", async (req, res): Promise<void> =>
     return;
   }
 
-  res.json({
-    ...updated,
-    rank: getRank(updated.points),
-    position: 0,
-    createdAt: updated.createdAt.toISOString(),
-  });
+  res.json(mapMiembro(updated, 0));
 });
 
 router.put("/admin/current-book", async (req, res): Promise<void> => {
@@ -453,76 +423,69 @@ router.put("/admin/current-book", async (req, res): Promise<void> => {
     genre,
     coverUrl,
     synopsis,
-    currentWeek,
-    totalWeeks,
-    nextSessionDate,
-    nextSessionDescription,
     weekActivity,
-    motivationalPhrase,
   } = req.body as {
     title: string;
     author: string;
     genre: string;
     coverUrl: string;
     synopsis: string;
-    currentWeek: number;
-    totalWeeks: number;
-    nextSessionDate: string;
-    nextSessionDescription: string;
-    weekActivity: string;
-    motivationalPhrase: string;
+    currentWeek?: number;
+    totalWeeks?: number;
+    nextSessionDate?: string;
+    nextSessionDescription?: string;
+    weekActivity?: string;
+    motivationalPhrase?: string;
   };
 
-  const existing = await db
+  const [existing] = await db
     .select()
-    .from(currentBooksTable)
-    .orderBy(desc(currentBooksTable.updatedAt))
+    .from(librosTable)
+    .where(eq(librosTable.estatus, LIBRO_ESTATUS.ACTIVO))
+    .orderBy(desc(librosTable.creadoEn))
     .limit(1);
 
-  const data = {
-    title,
-    author,
-    genre,
-    coverUrl,
-    synopsis,
-    currentWeek,
-    totalWeeks,
-    nextSessionDate,
-    nextSessionDescription,
-    weekActivity,
-    motivationalPhrase,
-  };
-
   let book;
-  if (existing[0]) {
+  if (existing) {
     const [updated] = await db
-      .update(currentBooksTable)
-      .set(data)
-      .where(eq(currentBooksTable.id, existing[0].id))
+      .update(librosTable)
+      .set({
+        titulo: title,
+        autor: author,
+        genero: genre,
+        coverUrl,
+        sinopsis: synopsis,
+      })
+      .where(eq(librosTable.id, existing.id))
       .returning();
     book = updated;
   } else {
     const [created] = await db
-      .insert(currentBooksTable)
-      .values(data)
+      .insert(librosTable)
+      .values({
+        titulo: title,
+        autor: author,
+        genero: genre,
+        coverUrl,
+        sinopsis: synopsis,
+        estatus: LIBRO_ESTATUS.ACTIVO,
+      })
       .returning();
     book = created;
   }
 
-  res.json({
-    ...book,
-    createdAt: book.createdAt.toISOString(),
-    updatedAt: book.updatedAt.toISOString(),
-  });
-});
+  if (weekActivity !== undefined) {
+    await upsertActividad(book.id, ACTIVIDAD_TIPO.CINE, weekActivity);
+  }
 
-// ── EXPEDITION ROUTES ───────────────────────────────────────────────────────
+  res.json(await mapLibroEnRuta(book));
+});
 
 router.post("/admin/literary-countries/:id/expeditions", async (req, res): Promise<void> => {
   const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const countryId = parseInt(raw, 10);
 
-  const { title, author, coverUrl, startDate, endDate, closingActivity, closingActivityDesc, description, displayOrder } =
+  const { title, author, coverUrl, startDate, endDate, closingActivity, closingActivityDesc, description } =
     req.body as {
       title: string;
       author: string;
@@ -532,26 +495,32 @@ router.post("/admin/literary-countries/:id/expeditions", async (req, res): Promi
       closingActivity?: string;
       closingActivityDesc?: string;
       description?: string;
-      displayOrder?: number;
     };
 
   const [expedition] = await db
-    .insert(countryExpeditionsTable)
+    .insert(librosTable)
     .values({
-      countryId,
-      title,
-      author,
+      titulo: title,
+      autor: author,
       coverUrl: coverUrl ?? "",
-      startDate: startDate ?? "",
-      endDate: endDate ?? "",
-      closingActivity: closingActivity ?? "none",
-      closingActivityDesc: closingActivityDesc ?? "",
-      description: description ?? "",
-      displayOrder: displayOrder ?? 0,
+      sinopsis: description ?? "",
+      genero: "Expedición",
+      estatus: LIBRO_ESTATUS.TERMINADO,
+      paisLiterario: countryId,
+      fechaInicio: startDate ? startDate.slice(0, 10) : null,
+      fechaFinal: endDate ? endDate.slice(0, 10) : null,
     })
     .returning();
 
-  res.json({ ...expedition, createdAt: expedition.createdAt.toISOString(), readers: [] });
+  if (closingActivity && closingActivity !== "none") {
+    await upsertActividad(
+      expedition.id,
+      ACTIVIDAD_TIPO.CINE,
+      closingActivityDesc ?? closingActivity,
+    );
+  }
+
+  res.json(await mapExpedicion(expedition));
 });
 
 router.put("/admin/expeditions/:id", async (req, res): Promise<void> => {
@@ -570,20 +539,18 @@ router.put("/admin/expeditions/:id", async (req, res): Promise<void> => {
       description: string;
     }>;
 
-  const data: Record<string, unknown> = {};
-  if (title !== undefined) data.title = title;
-  if (author !== undefined) data.author = author;
+  const data: Partial<typeof librosTable.$inferInsert> = {};
+  if (title !== undefined) data.titulo = title;
+  if (author !== undefined) data.autor = author;
   if (coverUrl !== undefined) data.coverUrl = coverUrl;
-  if (startDate !== undefined) data.startDate = startDate;
-  if (endDate !== undefined) data.endDate = endDate;
-  if (closingActivity !== undefined) data.closingActivity = closingActivity;
-  if (closingActivityDesc !== undefined) data.closingActivityDesc = closingActivityDesc;
-  if (description !== undefined) data.description = description;
+  if (startDate !== undefined) data.fechaInicio = startDate.slice(0, 10);
+  if (endDate !== undefined) data.fechaFinal = endDate.slice(0, 10);
+  if (description !== undefined) data.sinopsis = description;
 
   const [updated] = await db
-    .update(countryExpeditionsTable)
+    .update(librosTable)
     .set(data)
-    .where(eq(countryExpeditionsTable.id, id))
+    .where(eq(librosTable.id, id))
     .returning();
 
   if (!updated) {
@@ -591,14 +558,31 @@ router.put("/admin/expeditions/:id", async (req, res): Promise<void> => {
     return;
   }
 
-  res.json({ ...updated, createdAt: updated.createdAt.toISOString() });
+  if (closingActivity !== undefined) {
+    if (closingActivity === "none") {
+      await db
+        .delete(actividadTable)
+        .where(and(eq(actividadTable.libroId, id), eq(actividadTable.tipo, ACTIVIDAD_TIPO.CINE)));
+    } else {
+      await upsertActividad(
+        id,
+        ACTIVIDAD_TIPO.CINE,
+        closingActivityDesc ?? closingActivity,
+      );
+    }
+  }
+
+  res.json(await mapExpedicion(updated));
 });
 
 router.delete("/admin/expeditions/:id", async (req, res): Promise<void> => {
   const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const id = parseInt(raw, 10);
 
-  await db.delete(countryExpeditionsTable).where(eq(countryExpeditionsTable.id, id));
+  await db.delete(lectorasTable).where(eq(lectorasTable.librosId, id));
+  await db.delete(actividadTable).where(eq(actividadTable.libroId, id));
+  await db.delete(votacionTable).where(eq(votacionTable.libroId, id));
+  await db.delete(librosTable).where(eq(librosTable.id, id));
   res.json({ success: true });
 });
 
@@ -609,17 +593,17 @@ router.post("/admin/expeditions/:id/readers", async (req, res): Promise<void> =>
 
   const existing = await db
     .select()
-    .from(expeditionMembersTable)
-    .where(eq(expeditionMembersTable.expeditionId, expeditionId));
+    .from(lectorasTable)
+    .where(and(eq(lectorasTable.librosId, expeditionId), eq(lectorasTable.miembrosId, memberId)));
 
-  if (existing.some((r) => r.memberId === memberId)) {
+  if (existing.length > 0) {
     res.json({ success: true, message: "Ya registrado" });
     return;
   }
 
   const [row] = await db
-    .insert(expeditionMembersTable)
-    .values({ expeditionId, memberId })
+    .insert(lectorasTable)
+    .values({ librosId: expeditionId, miembrosId: memberId })
     .returning();
 
   res.json(row);
@@ -632,63 +616,72 @@ router.delete("/admin/expeditions/:id/readers/:memberId", async (req, res): Prom
   const memberId = parseInt(rawMem, 10);
 
   await db
-    .delete(expeditionMembersTable)
+    .delete(lectorasTable)
     .where(
-      eq(expeditionMembersTable.expeditionId, expeditionId)
+      and(
+        eq(lectorasTable.librosId, expeditionId),
+        eq(lectorasTable.miembrosId, memberId),
+      ),
     );
 
   res.json({ success: true });
 });
 
-// ── GALLERY ROUTES ───────────────────────────────────────────────────────────
-
 router.post("/admin/literary-countries/:id/gallery", async (req, res): Promise<void> => {
   const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const countryId = parseInt(raw, 10);
-  const { url, caption, displayOrder } = req.body as { url: string; caption?: string; displayOrder?: number };
+  const { url, caption } = req.body as { url: string; caption?: string };
 
+  const galeriaLibro = await getOrCreateGaleriaLibro(countryId);
   const [photo] = await db
-    .insert(countryGalleryTable)
-    .values({ countryId, url, caption: caption ?? "", displayOrder: displayOrder ?? 0 })
+    .insert(actividadTable)
+    .values({
+      libroId: galeriaLibro.id,
+      tipo: ACTIVIDAD_TIPO.VISITA,
+      descripcion: caption ?? "",
+      fotoUrl: url,
+    })
     .returning();
 
-  res.json({ ...photo, createdAt: photo.createdAt.toISOString() });
+  res.json({
+    id: photo.id,
+    countryId,
+    url: photo.fotoUrl ?? "",
+    caption: photo.descripcion,
+    displayOrder: photo.id,
+    createdAt: formatTimestamp(photo.creadoEn),
+  });
 });
 
 router.delete("/admin/gallery/:id", async (req, res): Promise<void> => {
   const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const id = parseInt(raw, 10);
 
-  await db.delete(countryGalleryTable).where(eq(countryGalleryTable.id, id));
+  await db.delete(actividadTable).where(eq(actividadTable.id, id));
   res.json({ success: true });
 });
-
-// ── LITERARY COUNTRY UPDATE ──────────────────────────────────────────────────
 
 router.put("/admin/literary-countries/:id", async (req, res): Promise<void> => {
   const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const id = parseInt(raw, 10);
 
-  const { name, emoji, description, color, booksRead } = req.body as {
+  const { name, emoji, description, color } = req.body as {
     name?: string;
     emoji?: string;
     description?: string;
     color?: string;
-    booksRead?: number;
   };
 
-  const updateData: Partial<{ name: string; emoji: string; description: string; color: string; booksRead: number; updatedAt: Date }> = {};
-  if (name !== undefined) updateData.name = name;
+  const updateData: Partial<typeof paisesLiterariosTable.$inferInsert> = {};
+  if (name !== undefined) updateData.paisLiterario = name;
   if (emoji !== undefined) updateData.emoji = emoji;
-  if (description !== undefined) updateData.description = description;
+  if (description !== undefined) updateData.descripcion = description;
   if (color !== undefined) updateData.color = color;
-  if (booksRead !== undefined) updateData.booksRead = booksRead;
-  updateData.updatedAt = new Date();
 
   const [updated] = await db
-    .update(literaryCountriesTable)
+    .update(paisesLiterariosTable)
     .set(updateData)
-    .where(eq(literaryCountriesTable.id, id))
+    .where(eq(paisesLiterariosTable.id, id))
     .returning();
 
   if (!updated) {
@@ -696,7 +689,7 @@ router.put("/admin/literary-countries/:id", async (req, res): Promise<void> => {
     return;
   }
 
-  res.json({ ...updated, updatedAt: updated.updatedAt.toISOString() });
+  res.json(await mapPaisLiterario(updated, updated.id - 1));
 });
 
 export default router;

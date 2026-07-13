@@ -1,52 +1,48 @@
 import { Router, type IRouter } from "express";
-import { eq, desc } from "drizzle-orm";
-import { db, votingSessionsTable, candidateBooksTable, votingCodesTable } from "@workspace/db";
-import { generateCode } from "../lib/nanoid";
+import { eq } from "drizzle-orm";
+import {
+  db,
+  codigosVotacionTable,
+  votacionTable,
+  getActiveSesionVotacion,
+  getLatestSesionVotacion,
+  getCandidatosForSesion,
+  getVoteCounts,
+  mapSesionVotacion,
+  mapLibroCandidato,
+} from "@workspace/db";
 
 const router: IRouter = Router();
 
-router.get("/voting/session", async (req, res): Promise<void> => {
-  const sessions = await db
-    .select()
-    .from(votingSessionsTable)
-    .orderBy(desc(votingSessionsTable.createdAt))
-    .limit(1);
-
-  const session = sessions[0] ?? null;
+router.get("/voting/session", async (_req, res): Promise<void> => {
+  const session = (await getActiveSesionVotacion()) ?? (await getLatestSesionVotacion());
   res.json({
-    session: session
-      ? {
-          ...session,
-          deadline: session.deadline?.toISOString() ?? null,
-          createdAt: session.createdAt.toISOString(),
-        }
-      : null,
+    session: session ? mapSesionVotacion(session) : null,
   });
 });
 
-router.get("/voting/books", async (req, res): Promise<void> => {
-  const sessions = await db
-    .select()
-    .from(votingSessionsTable)
-    .orderBy(desc(votingSessionsTable.createdAt))
-    .limit(1);
-
-  if (!sessions[0]) {
+router.get("/voting/books", async (_req, res): Promise<void> => {
+  const session = await getActiveSesionVotacion();
+  if (!session) {
     res.json([]);
     return;
   }
 
-  const books = await db
-    .select()
-    .from(candidateBooksTable)
-    .where(eq(candidateBooksTable.sessionId, sessions[0].id))
-    .orderBy(desc(candidateBooksTable.votes));
+  const books = await getCandidatosForSesion(session.creadoEn);
+  const voteCounts = await getVoteCounts(session.id);
+  const maxVotes = Math.max(0, ...books.map((book) => voteCounts.get(book.id) ?? 0));
 
   res.json(
-    books.map((b) => ({
-      ...b,
-      createdAt: b.createdAt.toISOString(),
-    }))
+    books
+      .map((book) =>
+        mapLibroCandidato(
+          book,
+          session.id,
+          voteCounts.get(book.id) ?? 0,
+          !session.abierto && (voteCounts.get(book.id) ?? 0) === maxVotes && maxVotes > 0,
+        ),
+      )
+      .sort((a, b) => b.votes - a.votes),
   );
 });
 
@@ -62,83 +58,76 @@ router.post("/voting/vote", async (req, res): Promise<void> => {
     return;
   }
 
-  const sessions = await db
-    .select()
-    .from(votingSessionsTable)
-    .orderBy(desc(votingSessionsTable.createdAt))
-    .limit(1);
-
-  const session = sessions[0];
+  const session = await getActiveSesionVotacion();
   if (!session) {
     res.status(400).json({ message: "No hay votación activa" });
     return;
   }
 
-  if (session.status === "closed") {
+  if (!session.abierto) {
     res.status(400).json({ message: "La votación está cerrada" });
     return;
   }
 
-  const codes = await db
+  const [votingCode] = await db
     .select()
-    .from(votingCodesTable)
-    .where(eq(votingCodesTable.code, code.trim().toUpperCase()));
+    .from(codigosVotacionTable)
+    .where(eq(codigosVotacionTable.codigo, code.trim().toUpperCase()));
 
-  const votingCode = codes[0];
   if (!votingCode) {
     res.status(400).json({ message: "Código inválido. Verifica que lo escribiste correctamente." });
     return;
   }
 
-  if (votingCode.used) {
+  if (votingCode.usado) {
     res.status(400).json({ message: "Este código ya fue utilizado." });
     return;
   }
 
-  if (votingCode.sessionId !== session.id) {
+  if (votingCode.sesionId !== session.id) {
     res.status(400).json({ message: "Este código no es válido para la votación actual." });
     return;
   }
 
-  const books = await db
-    .select()
-    .from(candidateBooksTable)
-    .where(eq(candidateBooksTable.sessionId, session.id));
+  const books = await getCandidatosForSesion(session.creadoEn);
+  const bookIds = books.map((book) => book.id);
 
-  const bookIds = books.map((b) => b.id);
   if (!bookIds.includes(bookId)) {
     res.status(400).json({ message: "Libro no encontrado en esta votación." });
     return;
   }
 
-  await db
-    .update(candidateBooksTable)
-    .set({ votes: (books.find((b) => b.id === bookId)?.votes ?? 0) + 1 })
-    .where(eq(candidateBooksTable.id, bookId));
+  const votesToInsert: Array<{
+    codigoId: number;
+    libroId: number;
+    sesionId: number;
+  }> = [{ codigoId: votingCode.id, libroId: bookId, sesionId: session.id }];
 
   let votesUsed = 1;
 
-  if (votingCode.type === "premium" && secondBookId) {
+  if (votingCode.tipo === "premium" && secondBookId) {
     if (bookIds.includes(secondBookId)) {
-      const secondBook = books.find((b) => b.id === secondBookId);
-      await db
-        .update(candidateBooksTable)
-        .set({ votes: (secondBook?.votes ?? 0) + 1 })
-        .where(eq(candidateBooksTable.id, secondBookId));
+      votesToInsert.push({
+        codigoId: votingCode.id,
+        libroId: secondBookId,
+        sesionId: session.id,
+      });
       votesUsed = 2;
     }
-  } else if (votingCode.type === "premium" && !secondBookId) {
-    await db
-      .update(candidateBooksTable)
-      .set({ votes: (books.find((b) => b.id === bookId)?.votes ?? 0) + 2 })
-      .where(eq(candidateBooksTable.id, bookId));
+  } else if (votingCode.tipo === "premium" && !secondBookId) {
+    votesToInsert.push({
+      codigoId: votingCode.id,
+      libroId: bookId,
+      sesionId: session.id,
+    });
     votesUsed = 2;
   }
 
+  await db.insert(votacionTable).values(votesToInsert);
   await db
-    .update(votingCodesTable)
-    .set({ used: true, usedAt: new Date() })
-    .where(eq(votingCodesTable.id, votingCode.id));
+    .update(codigosVotacionTable)
+    .set({ usado: true })
+    .where(eq(codigosVotacionTable.id, votingCode.id));
 
   res.json({ success: true, message: "¡Voto registrado con éxito!", votesUsed });
 });

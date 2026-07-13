@@ -1,25 +1,17 @@
 import { Router, type IRouter } from "express";
-import { eq, asc, desc } from "drizzle-orm";
-import { db, membersTable } from "@workspace/db";
-import { getRank } from "../lib/nanoid";
+import { desc, eq } from "drizzle-orm";
+import { db, miembrosTable, mapMiembro } from "@workspace/db";
 
 const router: IRouter = Router();
 
-router.get("/leaderboard", async (req, res): Promise<void> => {
+router.get("/leaderboard", async (_req, res): Promise<void> => {
   const members = await db
     .select()
-    .from(membersTable)
-    .where(eq(membersTable.archived, false))
-    .orderBy(desc(membersTable.points));
+    .from(miembrosTable)
+    .where(eq(miembrosTable.activa, true))
+    .orderBy(desc(miembrosTable.puntos));
 
-  const ranked = members.map((m, idx) => ({
-    ...m,
-    rank: getRank(m.points),
-    position: idx + 1,
-    createdAt: m.createdAt.toISOString(),
-  }));
-
-  res.json(ranked);
+  res.json(members.map((member, index) => mapMiembro(member, index + 1)));
 });
 
 export default router;
