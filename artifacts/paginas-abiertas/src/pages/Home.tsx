@@ -783,12 +783,22 @@ const [dismissed, setDismissed] = useState(false);
       </div>
 
       <IdentityModal 
-        open={showIdentityModal} 
-        onSave={saveIdentity} 
-        onClose={() => setShowIdentityModal(false)} 
-      />
-    </section>
-  );
+        const saveIdentity = async (alias: string, avatar: string) => {
+          try {
+            const response = await fetch("/api/members/register", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ alias, avatar }),
+            });
+            if (!response.ok) throw new Error("Error al registrar");
+            const id = { alias, avatar };
+            localStorage.setItem("pa_identity", JSON.stringify(id));
+            setIdentity(id);
+            setShowIdentityModal(false);
+          } catch (error) {
+            console.error("Error registrando exploradora:", error);
+          }
+        };
 }
 
 function IdentityModal({ open, onSave, onClose }: { open: boolean, onSave: (alias: string, avatar: string) => void, onClose: () => void }) {
