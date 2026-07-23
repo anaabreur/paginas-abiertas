@@ -648,16 +648,17 @@ function VotingSection() {
 function LeaderboardSection() {
   const { data: members } = useGetLeaderboard();
   const [showIdentityModal, setShowIdentityModal] = useState(false);
-  const [identity, setIdentity] = useState<{alias: string, avatar: string} | null>(null);
+const [identity, setIdentity] = useState<{alias: string, avatar: string} | null>(null);
+const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem("pa_identity");
-    if (saved) {
-      setIdentity(JSON.parse(saved));
-    } else {
-      setShowIdentityModal(true);
-    }
-  }, []);
+  if (saved) {
+    setIdentity(JSON.parse(saved));
+  } else if (!dismissed) {
+    setShowIdentityModal(true);
+  }
+}, [dismissed]);
 
   const saveIdentity = (alias: string, avatar: string) => {
     const id = { alias, avatar };
@@ -689,7 +690,15 @@ function LeaderboardSection() {
           </h2>
           <p className="text-gray-600 max-w-2xl mx-auto">
             Lee libros, asiste a reuniones y participa para subir de rango. Las leyendas literarias pueden proponer libros para las próximas votaciones.
-          </p>
+            </p>
+          {!identity && (
+            <button
+              onClick={() => setShowIdentityModal(true)}
+              className="mt-4 px-6 py-3 bg-[#E8523A] text-white rounded-lg font-bold hover:bg-[#c9432e]"
+            >
+              Crea tu identidad de exploradora
+            </button>
+          )}
         </div>
 
         {/* Podium */}
