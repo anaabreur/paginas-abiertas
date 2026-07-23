@@ -16,7 +16,8 @@ router.get("/leaderboard", async (_req, res): Promise<void> => {
   } catch (error: any) {
     console.error("LEADERBOARD ERROR:", error.message);
     console.error("FULL ERROR:", JSON.stringify(error, null, 2));
-    res.status(500).json({ error: error.message });
+    console.error("CAUSE:", error.cause?.message || "no cause");
+    res.status(500).json({ error: error.message, cause: error.cause?.message || "unknown" });
   }
 });
 
